@@ -100,26 +100,7 @@ If your GHCR package is private:
 
 ## Deployment Flow
 
-```
-Developer push to main
-        ↓
-GitHub Actions CI
-├── Lint & Test (ruff + black + pytest)
-│   └── FAIL → workflow stops ❌
-├── Build Docker image
-├── Push tags to GHCR
-└── Report status
-        ↓
-Argo CD (watches main)
-├── Detects new image tags
-├── Syncs k8s/overlays/staging
-└── Staging auto-updates within minutes
-        ↓
-Production (manual sync)
-├── DevOps team reviews
-├── Manually triggers sync
-└── Production updates
-```
+![Riskstream CI/CD Pipeline](riskstream_CI_CD.svg)
 
 ## Caching
 
