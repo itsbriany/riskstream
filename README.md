@@ -63,6 +63,14 @@ Clean up:
 kubectl delete namespace local-dev
 ```
 
+## Contributing
+
+See [CONTRIBUTING.md](docs/CONTRIBUTING.md) for:
+- Development setup (Python, VSCode, extensions)
+- Local quality checks (Ruff, Black, pytest)
+- Pre-push checklist
+- CI quality gates
+
 ## Roadmap
 
 - [X] GitOps CI/CD (Argo CD + Kustomize overlays)
@@ -75,6 +83,7 @@ kubectl delete namespace local-dev
 
 - [**Architecture**](docs/ARCHITECTURE.md) - Kubernetes structure, namespaces, Argo CD behavior, image tagging
 - [**CI/CD Pipeline**](docs/CI-CD.md) - GitHub Actions, GHCR, deployment flow
+- [**Contributing**](docs/CONTRIBUTING.md) - Development setup, tooling, quality standards
 
 ## Tech Stack
 
@@ -91,12 +100,16 @@ kubectl delete namespace local-dev
 ```
 .
 ├── .github/workflows/ci.yml
+├── .vscode/
+│   ├── extensions.json
+│   └── settings.json
 ├── app/
 │   ├── Dockerfile
 │   └── main.py
 ├── docs/
 │   ├── ARCHITECTURE.md
-│   └── CI-CD.md
+│   ├── CI-CD.md
+│   └── CONTRIBUTING.md
 ├── k8s/
 │   ├── argocd/
 │   ├── base/

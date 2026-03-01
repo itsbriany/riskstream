@@ -6,11 +6,32 @@ Workflow file: `.github/workflows/ci.yml`
 
 ### Trigger Events
 
-- **Pull Request to `main`**: Build image, no push
-- **Push to `main`**: Build and push image to GHCR
+- **Pull Request to `main`**: Run lint/tests, build image (no push)
+- **Push to `main`**: Run lint/tests, build and push image to GHCR
 - **Manual dispatch** (`workflow_dispatch`)
 
-### Build & Push Job
+### Jobs
+
+#### 1. Lint and Test Job
+
+```
+ubuntu-latest runner
+├── Checkout code
+├── Set up Python 3.12
+├── Install dependencies (ruff, black, pytest)
+├── Run ruff linting
+├── Run black format check
+└── Run pytest tests
+```
+
+**Quality gates:**
+- Ruff must pass (no linting errors)
+- Black format check must pass
+- Tests run (soft-fail if no tests exist)
+
+Container build **only proceeds if this job succeeds**.
+
+#### 2. Container Build Job
 
 ```
 ubuntu-latest runner
@@ -83,6 +104,8 @@ If your GHCR package is private:
 Developer push to main
         ↓
 GitHub Actions CI
+├── Lint & Test (ruff + black + pytest)
+│   └── FAIL → workflow stops ❌
 ├── Build Docker image
 ├── Push tags to GHCR
 └── Report status
@@ -104,3 +127,7 @@ The workflow uses GitHub Actions build cache (`type=gha`) to speed up rebuilds:
 - Layer cache persists across builds
 - Subsequent builds skip unchanged layers
 - Significantly reduces build time on repeated pushes
+
+## Developer Workflow
+
+For local development setup, quality checks, and contribution guidelines, see [CONTRIBUTING.md](CONTRIBUTING.md).
