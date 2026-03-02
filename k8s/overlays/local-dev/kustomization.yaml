@@ -6,8 +6,6 @@ namespace: local-dev
 resources:
   - ../../base
 
-namePrefix: local-
-
 images:
   - name: ghcr.io/r0kit-sec/riskstream
     newName: riskstream
@@ -15,3 +13,4 @@ images:
 
 patches:
   - path: patch.yaml
+  - path: minio-patch.yaml

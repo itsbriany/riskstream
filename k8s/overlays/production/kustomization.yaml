@@ -6,8 +6,6 @@ namespace: production
 resources:
   - ../../base
 
-namePrefix: prod-
-
 images:
   - name: ghcr.io/r0kit-sec/riskstream
     newName: ghcr.io/r0kit-sec/riskstream
@@ -15,3 +13,4 @@ images:
 
 patches:
   - path: patch.yaml
+  - path: minio-patch.yaml

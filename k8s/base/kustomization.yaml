@@ -4,6 +4,14 @@ kind: Kustomization
 resources:
   - deployment.yaml
   - service.yaml
+  - minio-deployment.yaml
+  - minio-service.yaml
+  - minio-init-job.yaml
+
+configMapGenerator:
+  - name: minio-init-scripts
+    files:
+      - init-minio-buckets.sh=scripts/init-minio-buckets.sh
 
 commonLabels:
   app.kubernetes.io/name: riskstream

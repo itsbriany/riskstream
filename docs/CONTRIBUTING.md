@@ -137,7 +137,7 @@ Build and deploy to local k3s:
 Access the app:
 
 ```bash
-kubectl port-forward -n local-dev svc/local-riskstream 8081:80
+kubectl port-forward -n local-dev svc/riskstream 8081:80
 # Visit http://localhost:8081
 ```
 
