@@ -9,6 +9,7 @@ resources:
   - minio-init-job.yaml
   - threatfox-ingestion-deployment.yaml
   - threatfox-ingestion-service.yaml
+  - threatfox-recent-ingestion-cronjob.yaml
 
 configMapGenerator:
   - name: minio-init-scripts

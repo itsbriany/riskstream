@@ -11,9 +11,10 @@ CONFIGMAP_NAME="threatfox-integration-test-code"
 TEST_FILE="${ROOT_DIR}/riskstream/tests/integration/test_threatfox_ingestion.py"
 JOB_MANIFEST="${ROOT_DIR}/k8s/local-dev/threatfox-integration-test-job.yaml"
 SERVICE_DIR="${ROOT_DIR}/riskstream/services/ingestion/threatfox"
+DOCKERFILE_PATH="${ROOT_DIR}/riskstream/services/ingestion/threatfox/Dockerfile"
 
 echo "Building ThreatFox image ${IMAGE_NAME}:${IMAGE_TAG}..."
-docker build -t "${IMAGE_NAME}:${IMAGE_TAG}" "${SERVICE_DIR}"
+docker build -f "${DOCKERFILE_PATH}" -t "${IMAGE_NAME}:${IMAGE_TAG}" "${ROOT_DIR}"
 
 echo "Importing ThreatFox image into k3s..."
 docker save "${IMAGE_NAME}:${IMAGE_TAG}" | sudo k3s ctr images import -

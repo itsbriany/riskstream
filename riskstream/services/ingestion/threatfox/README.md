@@ -25,6 +25,12 @@ GET /recent
 ```
 Fetches IOCs from the last 24 hours.
 
+### Ingest Recent Threats
+```
+POST /ingest/recent
+```
+Fetches the latest ThreatFox feed and persists a timestamped raw snapshot to the `raw-feeds` MinIO bucket under `threatfox/recent/...`.
+
 ### Service Info
 ```
 GET /
@@ -51,6 +57,10 @@ docker run -e THREATFOX_AUTH_KEY=your-threatfox-auth-key -p 8081:8081 threatfox-
 - `PORT`: Service port (default: 8081)
 - `ENVIRONMENT`: Deployment environment (default: unknown)
 - `THREATFOX_AUTH_KEY`: ThreatFox API auth key required for upstream requests
+- `S3_ENDPOINT`: MinIO/S3 endpoint for raw feed storage
+- `S3_ACCESS_KEY`: MinIO/S3 access key for raw feed storage
+- `S3_SECRET_KEY`: MinIO/S3 secret key for raw feed storage
+- `S3_USE_SSL`: Whether to use TLS for MinIO/S3 connections
 
 ## Kubernetes Secret Setup
 

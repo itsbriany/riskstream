@@ -1,6 +1,7 @@
 import io
 import json
 import sys
+from datetime import datetime, timezone
 from pathlib import Path
 from unittest.mock import Mock, patch
 from urllib.error import HTTPError, URLError
@@ -33,10 +34,10 @@ class FakeResponse:
         return False
 
 
-def build_handler(path, threatfox_client):
+def build_handler(path, threatfox_client, method="GET"):
     handler = main.Handler.__new__(main.Handler)
     handler.path = path
-    handler.command = "GET"
+    handler.command = method
     handler.client = threatfox_client
     handler.wfile = io.BytesIO()
     handler.send_response = Mock()
@@ -137,3 +138,97 @@ def test_recent_returns_500_on_client_error(monkeypatch):
     handler.send_response.assert_called_once_with(500)
     assert response_body(handler) == {"error": "upstream failure"}
     assert log_event.call_args_list[1].kwargs["event"] == "request_failed"
+
+
+def test_build_recent_object_key_uses_timestamp_path():
+    timestamp = datetime(2026, 3, 14, 17, 37, 53, tzinfo=timezone.utc)
+
+    assert (
+        main.build_recent_object_key(timestamp)
+        == "threatfox/recent/2026/03/14/173753Z.json"
+    )
+
+
+def test_persist_recent_snapshot_writes_to_raw_feeds(monkeypatch):
+    fixed_time = datetime(2026, 3, 14, 17, 37, 53, 689616, tzinfo=timezone.utc)
+    minio_client = Mock()
+    storage_client = Mock()
+    storage_client.get_client.return_value = minio_client
+    monkeypatch.setattr(main, "utcnow", lambda: fixed_time)
+    monkeypatch.setattr(main, "StorageClient", Mock(return_value=storage_client))
+
+    result = main.persist_recent_snapshot({"data": [{"ioc": "1.2.3.4"}]}, requested_days=1)
+
+    put_call = minio_client.put_object.call_args
+    assert put_call.args[0] == "raw-feeds"
+    assert put_call.args[1] == "threatfox/recent/2026/03/14/173753Z.json"
+    assert put_call.kwargs["content_type"] == "application/json"
+    payload = json.loads(put_call.args[2].read().decode("utf-8"))
+    assert payload == {
+        "source": "threatfox",
+        "feed": "recent",
+        "fetched_at": "2026-03-14T17:37:53.689616+00:00",
+        "requested_days": 1,
+        "service": "threatfox-ingestion",
+        "data": {"data": [{"ioc": "1.2.3.4"}]},
+    }
+    assert result == {
+        "bucket": "raw-feeds",
+        "object_key": "threatfox/recent/2026/03/14/173753Z.json",
+        "fetched_at": "2026-03-14T17:37:53.689616+00:00",
+        "requested_days": 1,
+        "threats_count": 1,
+    }
+
+
+def test_ingest_recent_persists_snapshot(monkeypatch):
+    threatfox_client = Mock()
+    threatfox_client.get_recent_threats.return_value = {"data": [{"ioc": "1.2.3.4"}]}
+    handler = build_handler("/ingest/recent", threatfox_client, method="POST")
+    monkeypatch.setattr(main, "log_event", Mock())
+    monkeypatch.setattr(
+        main,
+        "persist_recent_snapshot",
+        Mock(
+            return_value={
+                "bucket": "raw-feeds",
+                "object_key": "threatfox/recent/2026/03/14/173753Z.json",
+                "fetched_at": "2026-03-14T17:37:53.689616+00:00",
+                "requested_days": 1,
+                "threats_count": 1,
+            }
+        ),
+    )
+
+    handler.do_POST()
+
+    threatfox_client.get_recent_threats.assert_called_once_with(days=1)
+    handler.send_response.assert_called_once_with(200)
+    assert response_body(handler) == {
+        "service": "threatfox-ingestion",
+        "feed": "recent",
+        "bucket": "raw-feeds",
+        "object_key": "threatfox/recent/2026/03/14/173753Z.json",
+        "fetched_at": "2026-03-14T17:37:53.689616+00:00",
+        "requested_days": 1,
+        "threats_count": 1,
+    }
+
+
+def test_ingest_recent_returns_500_on_persist_error(monkeypatch):
+    threatfox_client = Mock()
+    threatfox_client.get_recent_threats.return_value = {"data": []}
+    log_event = Mock()
+    handler = build_handler("/ingest/recent", threatfox_client, method="POST")
+    monkeypatch.setattr(main, "log_event", log_event)
+    monkeypatch.setattr(
+        main,
+        "persist_recent_snapshot",
+        Mock(side_effect=Exception("storage failure")),
+    )
+
+    handler.do_POST()
+
+    handler.send_response.assert_called_once_with(500)
+    assert response_body(handler) == {"error": "storage failure"}
+    assert log_event.call_args_list[1].kwargs["method"] == "POST"

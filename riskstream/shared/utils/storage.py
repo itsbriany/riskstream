@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 """
 Storage utility for MinIO/S3 bucket initialization and management.
 
