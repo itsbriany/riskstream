@@ -1,0 +1,13 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: threatfox-ingestion
+spec:
+  replicas: 1
+  template:
+    spec:
+      containers:
+        - name: threatfox-ingestion
+          env:
+            - name: ENVIRONMENT
+              value: staging

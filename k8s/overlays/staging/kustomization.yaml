@@ -14,3 +14,4 @@ images:
 patches:
   - path: patch.yaml
   - path: minio-patch.yaml
+  - path: threatfox-ingestion-patch.yaml
