@@ -6,7 +6,7 @@ metadata:
 spec:
   project: riskstream
   source:
-    repoURL: https://github.com/r0kit-sec/riskstream.git
+    repoURL: https://github.com/itsbriany/riskstream.git
     targetRevision: main
     path: k8s/overlays/production
   destination:

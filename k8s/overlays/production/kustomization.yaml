@@ -7,8 +7,8 @@ resources:
   - ../../base
 
 images:
-  - name: ghcr.io/r0kit-sec/riskstream
-    newName: ghcr.io/r0kit-sec/riskstream
+  - name: ghcr.io/itsbriany/riskstream
+    newName: ghcr.io/itsbriany/riskstream
     newTag: stable
 
 patches:

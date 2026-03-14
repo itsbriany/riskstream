@@ -6,7 +6,7 @@ metadata:
 spec:
   description: Riskstream GitOps project
   sourceRepos:
-    - https://github.com/r0kit-sec/riskstream.git
+    - https://github.com/itsbriany/riskstream.git
   destinations:
     - namespace: staging
       server: https://kubernetes.default.svc

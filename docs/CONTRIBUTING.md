@@ -15,7 +15,7 @@ Thank you for contributing! This guide covers development setup, tooling, and qu
 
 1. Clone the repository:
    ```bash
-   git clone https://github.com/r0kit-sec/riskstream.git
+   git clone https://github.com/itsbriany/riskstream.git
    cd riskstream
    ```
 

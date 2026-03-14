@@ -16,7 +16,7 @@ spec:
     spec:
       containers:
         - name: threatfox-ingestion
-          image: ghcr.io/r0kit-sec/threatfox-ingestion:main
+          image: ghcr.io/itsbriany/threatfox-ingestion:main
           imagePullPolicy: IfNotPresent
           ports:
             - containerPort: 8081

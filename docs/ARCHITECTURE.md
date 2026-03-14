@@ -63,7 +63,7 @@ k8s/
 
 ```yaml
 riskstream-staging Application:
-  - source: https://github.com/r0kit-sec/riskstream (main branch)
+  - source: https://github.com/itsbriany/riskstream (main branch)
   - path: k8s/overlays/staging
   - syncPolicy: automated (prune + selfHeal)
   - destination: staging namespace
@@ -75,7 +75,7 @@ riskstream-staging Application:
 
 ```yaml
 riskstream-production Application:
-  - source: https://github.com/r0kit-sec/riskstream (main branch)
+  - source: https://github.com/itsbriany/riskstream (main branch)
   - path: k8s/overlays/production
   - syncPolicy: manual (requires explicit approval)
   - destination: production namespace
@@ -85,6 +85,6 @@ riskstream-production Application:
 
 ## Image Tagging
 
-- **Staging:** `ghcr.io/r0kit-sec/riskstream:main` (latest from `main` branch)
-- **Production:** `ghcr.io/r0kit-sec/riskstream:stable` (requires manual tag/promotion)
+- **Staging:** `ghcr.io/itsbriany/riskstream:main` (latest from `main` branch)
+- **Production:** `ghcr.io/itsbriany/riskstream:stable` (requires manual tag/promotion)
 - **Local-dev:** `riskstream:local` (local docker registry)

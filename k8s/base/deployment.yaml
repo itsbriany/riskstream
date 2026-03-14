@@ -14,7 +14,7 @@ spec:
     spec:
       containers:
         - name: riskstream
-          image: ghcr.io/r0kit-sec/riskstream:main
+          image: ghcr.io/itsbriany/riskstream:main
           imagePullPolicy: IfNotPresent
           ports:
             - containerPort: 8080

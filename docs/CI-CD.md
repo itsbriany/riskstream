@@ -39,9 +39,9 @@ ubuntu-latest runner
 ├── Set up Docker Buildx (for multi-platform builds)
 ├── Log in to GHCR (on push to main)
 ├── Generate tags
-│   ├── ghcr.io/r0kit-sec/riskstream:<sha>
-│   ├── ghcr.io/r0kit-sec/riskstream:main
-│   └── ghcr.io/r0kit-sec/riskstream:latest
+│   ├── ghcr.io/itsbriany/riskstream:<sha>
+│   ├── ghcr.io/itsbriany/riskstream:main
+│   └── ghcr.io/itsbriany/riskstream:latest
 └── Build & push image (push only on main)
 ```
 
@@ -64,9 +64,9 @@ These permissions use the auto-generated `GITHUB_TOKEN` (no manual setup needed)
 
 | Tag | Purpose |
 |-----|---------|
-| `ghcr.io/r0kit-sec/riskstream:main` | Latest from `main` branch; used by Argo CD for staging |
-| `ghcr.io/r0kit-sec/riskstream:latest` | Latest release alias |
-| `ghcr.io/r0kit-sec/riskstream:<sha>` | Commit-specific digest for traceability |
+| `ghcr.io/itsbriany/riskstream:main` | Latest from `main` branch; used by Argo CD for staging |
+| `ghcr.io/itsbriany/riskstream:latest` | Latest release alias |
+| `ghcr.io/itsbriany/riskstream:<sha>` | Commit-specific digest for traceability |
 
 ### GHCR Setup
 
@@ -100,7 +100,7 @@ If your GHCR package is private:
 
 ## Deployment Flow
 
-![Riskstream CI/CD Pipeline](https://raw.githubusercontent.com/r0kit-sec/riskstream/refs/heads/main/docs/riskstream%20CI_CD.svg)
+![Riskstream CI/CD Pipeline](https://raw.githubusercontent.com/itsbriany/riskstream/refs/heads/main/docs/riskstream%20CI_CD.svg)
 
 ## Caching
 
