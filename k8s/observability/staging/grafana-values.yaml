@@ -1,0 +1,34 @@
+replicas: 1
+
+service:
+  type: ClusterIP
+  port: 80
+
+persistence:
+  enabled: false
+  size: 5Gi
+
+grafana.ini:
+  auth.anonymous:
+    enabled: true
+    org_role: Editor
+  auth.basic:
+    enabled: false
+  users:
+    viewers_can_edit: false
+  server:
+    root_url: http://grafana.observability.svc.cluster.local
+
+datasources:
+  datasources.yaml:
+    apiVersion: 1
+    datasources:
+      - name: Loki
+        uid: loki
+        type: loki
+        access: proxy
+        url: http://loki:3100
+        isDefault: true
+        editable: false
+        jsonData:
+          maxLines: 1000

@@ -3,5 +3,6 @@ kind: Kustomization
 
 resources:
   - argocd.yaml
+  - observability.yaml
   - staging.yaml
   - production.yaml

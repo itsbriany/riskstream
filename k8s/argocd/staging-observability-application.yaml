@@ -1,0 +1,41 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: riskstream-observability-staging
+  namespace: argocd
+spec:
+  project: riskstream
+  sources:
+    - repoURL: https://grafana.github.io/helm-charts
+      chart: loki
+      targetRevision: "*"
+      helm:
+        releaseName: loki
+        valueFiles:
+          - $values/k8s/observability/staging/loki-values.yaml
+    - repoURL: https://grafana.github.io/helm-charts
+      chart: grafana
+      targetRevision: "*"
+      helm:
+        releaseName: grafana
+        valueFiles:
+          - $values/k8s/observability/staging/grafana-values.yaml
+    - repoURL: https://fluent.github.io/helm-charts
+      chart: fluent-bit
+      targetRevision: "*"
+      helm:
+        releaseName: fluent-bit
+        valueFiles:
+          - $values/k8s/observability/staging/fluent-bit-values.yaml
+    - repoURL: https://github.com/itsbriany/riskstream.git
+      targetRevision: observability
+      ref: values
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: observability
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true

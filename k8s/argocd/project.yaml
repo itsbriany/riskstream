@@ -7,7 +7,11 @@ spec:
   description: Riskstream GitOps project
   sourceRepos:
     - https://github.com/itsbriany/riskstream.git
+    - https://grafana.github.io/helm-charts
+    - https://fluent.github.io/helm-charts
   destinations:
+    - namespace: observability
+      server: https://kubernetes.default.svc
     - namespace: staging
       server: https://kubernetes.default.svc
     - namespace: production

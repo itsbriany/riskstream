@@ -9,6 +9,7 @@ Riskstream uses a Kubernetes-native GitOps architecture with Argo CD for declara
 ### Namespaces
 
 - **`argocd`** - Argo CD control plane
+- **`observability`** - Shared logging stack for staging-first log aggregation
 - **`staging`** - Auto-synced from main branch
 - **`production`** - Manual sync (intentional separation)
 - **`local-dev`** - Local development on k3s
@@ -36,11 +37,19 @@ k8s/
 ├── argocd/                         # Argo CD configuration
 │   ├── project.yaml                # AppProject definition
 │   ├── staging-application.yaml    # Auto-sync to staging
+│   ├── staging-observability-application.yaml # Staging observability stack
 │   ├── production-application.yaml # Manual sync to production
 │   └── kustomization.yaml
 │
+├── observability/                  # Observability Helm values
+│   └── staging/
+│       ├── fluent-bit-values.yaml
+│       ├── grafana-values.yaml
+│       └── loki-values.yaml
+│
 └── namespaces/                     # Namespace definitions
     ├── argocd.yaml
+    ├── observability.yaml
     ├── staging.yaml
     ├── production.yaml
     └── kustomization.yaml
