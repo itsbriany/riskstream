@@ -6,7 +6,7 @@ RiskStream uses a staging-first log aggregation stack built from:
 - Loki
 - Grafana
 
-The stack is deployed into the `observability` namespace and collects logs from the `staging` and `local-dev` namespaces.
+The stack is deployed into the `observability` namespace and collects logs from the `staging`, `production`, and `local-dev` namespaces.
 
 ## Accessing Grafana
 
@@ -30,6 +30,12 @@ All local-dev logs:
 {namespace="local-dev"}
 ```
 
+All production logs:
+
+```logql
+{namespace="production"}
+```
+
 ThreatFox ingestion logs:
 
 ```logql
@@ -40,6 +46,12 @@ ThreatFox ingestion logs in local-dev:
 
 ```logql
 {namespace="local-dev", container="threatfox-ingestion"}
+```
+
+ThreatFox ingestion logs in production:
+
+```logql
+{namespace="production", container="threatfox-ingestion"}
 ```
 
 ThreatFox structured JSON logs:
@@ -60,8 +72,8 @@ All RiskStream app logs by pod:
 {namespace="staging"} |= "riskstream"
 ```
 
-All RiskStream logs across both application namespaces:
+All RiskStream logs across all application namespaces:
 
 ```logql
-{namespace=~"staging|local-dev"}
+{namespace=~"staging|production|local-dev"}
 ```

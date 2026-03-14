@@ -42,7 +42,7 @@ config:
     [FILTER]
         Name grep
         Match kube.*
-        Regex $kubernetes['namespace_name'] ^(staging|local-dev|observability)$
+        Regex $kubernetes['namespace_name'] ^(staging|production|local-dev|observability)$
 
   outputs: |
     [OUTPUT]
