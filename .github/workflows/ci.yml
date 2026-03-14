@@ -36,6 +36,14 @@ jobs:
       - name: Run tests
         run: pytest ./app --tb=short || true
 
+      - name: Run ThreatFox unit tests in service base image
+        run: |
+          docker run --rm \
+            -v "${{ github.workspace }}:/work" \
+            -w /work \
+            python:3.11-slim \
+            sh -lc "python -m pip install --quiet pytest && pytest -q riskstream/tests/unit/test_threatfox_ingestion.py"
+
   container:
     needs: lint-and-test
     runs-on: ubuntu-latest

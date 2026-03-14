@@ -10,7 +10,11 @@ images:
   - name: ghcr.io/r0kit-sec/riskstream
     newName: riskstream
     newTag: local
+  - name: ghcr.io/r0kit-sec/threatfox-ingestion
+    newName: threatfox-ingestion
+    newTag: local
 
 patches:
   - path: patch.yaml
   - path: minio-patch.yaml
+  - path: threatfox-ingestion-patch.yaml

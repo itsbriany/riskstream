@@ -1,0 +1,13 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: threatfox-ingestion
+  labels:
+    app: threatfox-ingestion
+spec:
+  selector:
+    app: threatfox-ingestion
+  ports:
+    - name: http
+      port: 80
+      targetPort: http

@@ -1,0 +1,26 @@
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: threatfox-recent-ingestion
+spec:
+  schedule: "5 * * * *"
+  concurrencyPolicy: Forbid
+  successfulJobsHistoryLimit: 2
+  failedJobsHistoryLimit: 2
+  jobTemplate:
+    spec:
+      backoffLimit: 2
+      template:
+        metadata:
+          labels:
+            app: threatfox-recent-ingestion
+        spec:
+          restartPolicy: OnFailure
+          containers:
+            - name: trigger-ingestion
+              image: curlimages/curl:8.7.1
+              args:
+                - -fsS
+                - -X
+                - POST
+                - http://threatfox-ingestion/ingest/recent
