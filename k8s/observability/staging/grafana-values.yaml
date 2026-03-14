@@ -5,7 +5,7 @@ service:
   port: 80
 
 persistence:
-  enabled: true
+  enabled: false
   size: 5Gi
 
 grafana.ini:
