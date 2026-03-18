@@ -4,6 +4,10 @@ Riskstream is a streaming ML ranking system that prioritizes security signals ba
 
 Built on Kubernetes with Argo CD GitOps and GitHub Actions CI/CD.
 
+![Riskstream solution architecture](docs/riskstream-solution-architecture.svg)
+
+Current solution architecture for the project as it exists today. RiskStream is still a work in progress, so this diagram reflects the current state rather than a finalized end state. See [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) for deployment structure and platform details.
+
 ## Quick Start
 
 ### Prerequisites
@@ -94,21 +98,21 @@ See [CONTRIBUTING.md](docs/CONTRIBUTING.md) for:
 - [**CI/CD Pipeline**](docs/CI-CD.md) - GitHub Actions, GHCR, deployment flow
 - [**MinIO Storage**](docs/MINIO.md) - Object storage setup, bucket initialization, usage
 - [**Contributing**](docs/CONTRIBUTING.md) - Development setup, tooling, quality standards
+- [**Service Index**](riskstream/services/README.md) - Entry points to service-specific documentation
 
 ## Microservices Architecture
 
 RiskStream is built as a collection of microservices:
 
-- **API Gateway** (`:8080`) - Main entry point for external clients
+- **API Gateway** - Main entry point for external clients
 - **Ingestion Services**:
-  - **ThreatFox** (`:8081`) - Ingests IOCs from abuse.ch ThreatFox API
-  - **CISA KEV** (`:8082`) - Ingests the CISA Known Exploited Vulnerabilities catalog
+  - **ThreatFox** - abuse.ch ThreatFox IOC ingestion
+  - **CISA KEV** - CISA Known Exploited Vulnerabilities catalog ingestion
 - **Storage** - MinIO object storage for threat data
   - Separate instances per environment (local-dev, staging, production)
   - Buckets: `threat-indicators`, `raw-feeds`, `processed-data`, `archives`
-  - Raw feed prefixes: `threatfox/recent/...`, `cisa-kev/catalog/...`
 
-See [riskstream/services/README.md](riskstream/services/README.md) for detailed service documentation.
+Service-specific ports, endpoints, schedules, persistence behavior, and troubleshooting live in the individual service READMEs linked from [riskstream/services/README.md](riskstream/services/README.md).
 
 ## Tech Stack
 
@@ -121,56 +125,15 @@ See [riskstream/services/README.md](riskstream/services/README.md) for detailed 
 | CI/CD | GitHub Actions |
 | Object Storage | MinIO (S3-compatible) |
 
-## Repository Layout
+## Project Structure
 
-```
-.
-├── .github/workflows/ci.yml
-├── .vscode/
-│   ├── extensions.json
-│   └── settings.json
-├── app/                           # Legacy app (for CI demo)
-│   ├── Dockerfile
-│   └── main.py
-├── riskstream/                    # Microservices architecture
-│   ├── services/
-│   │   ├── api/                  # API Gateway
-│   │   └── ingestion/
-│   │       ├── cisa-kev/         # CISA KEV catalog ingestion
-│   │       └── threatfox/        # ThreatFox IOC ingestion
-│   ├── shared/
-│   │   └── utils/
-│   │       └── storage.py        # MinIO/S3 client
-│   └── tests/
-│       ├── integration/
-│       └── e2e/
-├── docs/
-│   ├── ARCHITECTURE.md
-│   ├── CI-CD.md
-│   └── CONTRIBUTING.md
-├── k8s/
-│   ├── argocd/
-│   ├── base/
-│   │   ├── deployment.yaml
-│   │   ├── service.yaml
-│   │   ├── minio-deployment.yaml  # MinIO base config
-│   │   └── minio-service.yaml
-│   ├── namespaces/
-│   └── overlays/
-│       ├── local-dev/
-│       │   └── minio-patch.yaml   # 5Gi storage
-│       ├── staging/
-│       │   └── minio-patch.yaml   # 20Gi storage
-│       └── production/
-│           └── minio-patch.yaml   # 50Gi storage
-└── scripts/
-    ├── bootstrap-k3s.sh
-    ├── build-and-deploy-local.sh
-    ├── port-forward-argocd.sh
-    ├── port-forward-minio.sh      # MinIO port forwarding
-    ├── run-cisa-kev-integration-test.sh
-    └── run-threatfox-integration-test.sh
-```
+- `app/` - Legacy app kept for the main container image and CI demo flow
+- `riskstream/` - Microservice code, shared libraries, and tests
+- `docs/` - Cross-cutting architecture, CI/CD, storage, and contributor guidance
+- `k8s/` - Kubernetes manifests, overlays, Argo CD definitions, and observability config
+- `scripts/` - Local development, deployment, and integration-test helpers
+
+See [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) for Kubernetes structure and [riskstream/services/README.md](riskstream/services/README.md) for the service index.
 
 ## Notes
 

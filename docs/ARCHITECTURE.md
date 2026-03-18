@@ -14,46 +14,15 @@ Riskstream uses a Kubernetes-native GitOps architecture with Argo CD for declara
 - **`production`** - Manual sync (intentional separation)
 - **`local-dev`** - Local development on k3s
 
-### Repository Layout
+### Kubernetes Layout
 
-```
-k8s/
-├── base/                           # Shared manifests
-│   ├── deployment.yaml
-│   ├── service.yaml
-│   └── kustomization.yaml
-│
-├── overlays/                       # Environment-specific configs
-│   ├── local-dev/                  # Local k3s dev
-│   │   ├── kustomization.yaml
-│   │   └── patch.yaml
-│   ├── staging/                    # Auto-synced from main
-│   │   ├── kustomization.yaml
-│   │   └── patch.yaml
-│   └── production/                 # Manual sync
-│       ├── kustomization.yaml
-│       └── patch.yaml
-│
-├── argocd/                         # Argo CD configuration
-│   ├── project.yaml                # AppProject definition
-│   ├── staging-application.yaml    # Auto-sync to staging
-│   ├── staging-observability-application.yaml # Staging observability stack
-│   ├── production-application.yaml # Manual sync to production
-│   └── kustomization.yaml
-│
-├── observability/                  # Observability Helm values
-│   └── staging/
-│       ├── fluent-bit-values.yaml
-│       ├── grafana-values.yaml
-│       └── loki-values.yaml
-│
-└── namespaces/                     # Namespace definitions
-    ├── argocd.yaml
-    ├── observability.yaml
-    ├── staging.yaml
-    ├── production.yaml
-    └── kustomization.yaml
-```
+- `k8s/base/` - Shared manifests for the platform and application workloads
+- `k8s/overlays/` - Environment-specific customization for local-dev, staging, and production
+- `k8s/argocd/` - GitOps application definitions and project configuration
+- `k8s/namespaces/` - Namespace resources
+- `k8s/observability/` - Observability stack values and related config
+
+The exact manifest set under `k8s/base/` grows as new services are added, so this doc intentionally describes responsibilities instead of maintaining a file inventory.
 
 ## Kustomize Strategy
 

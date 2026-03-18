@@ -107,6 +107,29 @@ All pull requests and pushes to `main` run automated checks:
    - Build Docker image
    - Push to GHCR (on push to `main` only)
 
+## Documentation Ownership
+
+To keep docs maintainable, prefer one canonical document per topic:
+
+- **Service behavior** lives in the service README beside the code
+  - endpoints
+  - environment variables
+  - ports
+  - schedules
+  - persistence behavior
+  - service-specific troubleshooting
+- **Cross-cutting platform topics** live under `docs/`
+  - architecture
+  - CI/CD
+  - MinIO/storage conventions
+  - observability
+- **Top-level READMEs** should stay navigational
+  - overview
+  - high-level structure
+  - links to the canonical docs
+
+When a feature changes a service, update the canonical service README first. Update overview or platform docs only when shared behavior actually changed. In general, prefer stable role-based descriptions in overview docs over detailed file inventories that are already discoverable from the repository itself.
+
 ### Pre-push Checklist
 
 Before pushing, ensure your changes pass all checks locally:

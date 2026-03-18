@@ -6,12 +6,12 @@ This directory contains all microservices that comprise the RiskStream threat in
 
 ### API
 Main API gateway that provides a unified interface for external clients.
-- **Port**: 8080
+- Canonical doc: `api/README.md`
 
 ### Ingestion
 Services that collect threat intelligence from external sources.
-- **ThreatFox**: abuse.ch ThreatFox IOC ingestion (Port: 8081)
-- **CISA KEV**: CISA Known Exploited Vulnerabilities catalog ingestion (Port: 8082)
+- **ThreatFox**: `ingestion/threatfox/README.md`
+- **CISA KEV**: `ingestion/cisa-kev/README.md`
 
 ## Service Architecture
 
@@ -23,27 +23,12 @@ Each service is independently deployable and follows these principles:
 4. **Health monitoring**: All services implement `/healthz` endpoints
 5. **Configuration**: Environment-based configuration via environment variables
 
-## Directory Structure
+## Structure
 
-```
-services/
-├── api/                    # API gateway service
-│   ├── src/
-│   ├── Dockerfile
-│   └── README.md
-└── ingestion/             # Data ingestion services
-    ├── cisa-kev/          # CISA KEV catalog ingestion
-    │   ├── src/
-    │   ├── Dockerfile
-    │   ├── requirements.txt
-    │   └── README.md
-    ├── threatfox/         # ThreatFox IOC ingestion
-    │   ├── src/
-    │   ├── Dockerfile
-    │   ├── requirements.txt
-    │   └── README.md
-    └── README.md
-```
+- `api/` contains gateway services
+- `ingestion/` contains source-specific ingestion services
+
+Each service is expected to keep its code, container definition, and canonical README together in its own directory.
 
 ## Running Services
 
@@ -53,6 +38,8 @@ Run individual services directly:
 cd services/<service-name>/src
 python main.py
 ```
+
+Use the service README as the source of truth for environment variables, ports, endpoints, and local examples.
 
 ### Docker
 Build and run with Docker:
@@ -72,6 +59,6 @@ To add a new service:
 1. Create a directory under the appropriate group (`api`, `ingestion`, etc.)
 2. Implement the service following the established patterns
 3. Add a `Dockerfile` for containerization
-4. Create a `README.md` documenting the service
+4. Create a `README.md` documenting the service as the canonical source of truth
 5. Add Kubernetes manifests if needed
-6. Update this README with the new service information
+6. Update this README with a short index entry and link

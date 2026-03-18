@@ -4,29 +4,22 @@ A microservices-based threat intelligence platform for ingesting, processing, an
 
 ## Architecture
 
-RiskStream is built as a collection of microservices organized into logical groups:
+RiskStream is organized into a few stable groups:
 
-```
-riskstream/
-├── services/          # Microservices
-│   ├── api/           # API gateway
-│   └── ingestion/     # Data ingestion services
-│       ├── cisa-kev/  # CISA KEV catalog ingestion
-│       └── threatfox/ # ThreatFox IOC ingestion
-├── shared/            # Shared libraries
-├── tests/             # Integration and E2E tests
-│   ├── integration/
-│   └── e2e/
-```
+- `services/` - API and ingestion microservices
+- `shared/` - shared libraries used across services
+- `tests/` - integration and end-to-end test suites
+
+Use the service index in [services/README.md](/home/r0kit/projects/interview_prep/riskstream/riskstream/services/README.md) to find the canonical README for a specific service.
 
 ## Services
 
-### API Gateway (Port 8080)
-Main entry point for external clients. Provides a unified interface to access threat intelligence.
+### API Gateway
+Main entry point for external clients. See `services/api/README.md` for service-specific details.
 
 ### Ingestion Services
-- **ThreatFox** (Port 8081): Ingests indicators of compromise from abuse.ch ThreatFox API
-- **CISA KEV** (Port 8082): Ingests the CISA Known Exploited Vulnerabilities catalog and writes changed raw snapshots to MinIO
+- **ThreatFox**: See `services/ingestion/threatfox/README.md`
+- **CISA KEV**: See `services/ingestion/cisa-kev/README.md`
 
 ## Getting Started
 
@@ -39,36 +32,20 @@ Main entry point for external clients. Provides a unified interface to access th
 
 #### Individual Services
 ```bash
-# API Gateway
-cd services/api/src
-python main.py
-
-# ThreatFox Ingestion
-cd services/ingestion/threatfox/src
-python main.py
-
-# CISA KEV Ingestion
-cd services/ingestion/cisa-kev/src
+cd services/<service>/src
 python main.py
 ```
+
+See the individual service README for required environment variables, ports, endpoints, and runtime behavior.
 
 #### With Docker
 ```bash
-# Build and run API gateway
-cd services/api
-docker build -t riskstream-api .
-docker run -p 8080:8080 riskstream-api
-
-# Build and run ThreatFox ingestion
-cd services/ingestion/threatfox
-docker build -t riskstream-threatfox .
-docker run -p 8081:8081 riskstream-threatfox
-
-# Build and run CISA KEV ingestion
-cd services/ingestion/cisa-kev
-docker build -t riskstream-cisa-kev .
-docker run -p 8082:8082 riskstream-cisa-kev
+cd services/<service>
+docker build -t riskstream-<service> .
+docker run -p <port>:<port> riskstream-<service>
 ```
+
+Use the service README as the source of truth for concrete image names, env vars, and local commands.
 
 ## Testing
 
