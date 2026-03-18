@@ -11,6 +11,7 @@ riskstream/
 ├── services/          # Microservices
 │   ├── api/           # API gateway
 │   └── ingestion/     # Data ingestion services
+│       ├── cisa-kev/  # CISA KEV catalog ingestion
 │       └── threatfox/ # ThreatFox IOC ingestion
 ├── shared/            # Shared libraries
 ├── tests/             # Integration and E2E tests
@@ -25,6 +26,7 @@ Main entry point for external clients. Provides a unified interface to access th
 
 ### Ingestion Services
 - **ThreatFox** (Port 8081): Ingests indicators of compromise from abuse.ch ThreatFox API
+- **CISA KEV** (Port 8082): Ingests the CISA Known Exploited Vulnerabilities catalog and writes changed raw snapshots to MinIO
 
 ## Getting Started
 
@@ -44,6 +46,10 @@ python main.py
 # ThreatFox Ingestion
 cd services/ingestion/threatfox/src
 python main.py
+
+# CISA KEV Ingestion
+cd services/ingestion/cisa-kev/src
+python main.py
 ```
 
 #### With Docker
@@ -57,6 +63,11 @@ docker run -p 8080:8080 riskstream-api
 cd services/ingestion/threatfox
 docker build -t riskstream-threatfox .
 docker run -p 8081:8081 riskstream-threatfox
+
+# Build and run CISA KEV ingestion
+cd services/ingestion/cisa-kev
+docker build -t riskstream-cisa-kev .
+docker run -p 8082:8082 riskstream-cisa-kev
 ```
 
 ## Testing

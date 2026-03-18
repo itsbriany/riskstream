@@ -60,11 +60,13 @@ k8s/
 **Base** (`k8s/base/`) contains the core application manifests:
 - Generic `Deployment` with GHCR image reference
 - `Service` for network access
+- MinIO deployment and bucket-init job
+- ThreatFox and CISA KEV ingestion deployments, services, and CronJobs
 
 **Overlays** apply environment-specific changes:
-- `staging`: `stg-` prefix, `main` image tag, 1 replica, Always pull policy
-- `production`: `prod-` prefix, `stable` image tag, 3 replicas, IfNotPresent pull policy
-- `local-dev`: `local-` prefix, local image registry, Never pull policy
+- `staging`: environment patching and image/tag selection for shared services and ingestion workloads
+- `production`: environment patching and stable app promotion
+- `local-dev`: local image names, Never pull policy, and local-dev environment overrides for ingestion services
 
 ## Argo CD Behavior
 
@@ -97,3 +99,4 @@ riskstream-production Application:
 - **Staging:** `ghcr.io/itsbriany/riskstream:main` (latest from `main` branch)
 - **Production:** `ghcr.io/itsbriany/riskstream:stable` (requires manual tag/promotion)
 - **Local-dev:** `riskstream:local` (local docker registry)
+- **Ingestion images:** ThreatFox and CISA KEV are built and published as separate GHCR images, with local-dev using local image names via overlay remapping

@@ -38,11 +38,10 @@ ubuntu-latest runner
 ├── Checkout code
 ├── Set up Docker Buildx (for multi-platform builds)
 ├── Log in to GHCR (on push to main)
-├── Generate tags
-│   ├── ghcr.io/itsbriany/riskstream:<sha>
-│   ├── ghcr.io/itsbriany/riskstream:main
-│   └── ghcr.io/itsbriany/riskstream:latest
-└── Build & push image (push only on main)
+├── Generate app and ingestion image tags
+├── Build app image
+├── Build ThreatFox ingestion image
+└── Build CISA KEV ingestion image
 ```
 
 ### Permissions
@@ -55,7 +54,13 @@ These permissions use the auto-generated `GITHUB_TOKEN` (no manual setup needed)
 
 ## Image Publishing
 
-### Build Context
+### Published Images
+
+- `ghcr.io/itsbriany/riskstream`
+- `ghcr.io/itsbriany/threatfox-ingestion`
+- `ghcr.io/itsbriany/cisa-kev-ingestion`
+
+### Main App Build Context
 
 - **Dockerfile:** `./app/Dockerfile`
 - **Base image:** `python:3.12-slim`
@@ -67,6 +72,8 @@ These permissions use the auto-generated `GITHUB_TOKEN` (no manual setup needed)
 | `ghcr.io/itsbriany/riskstream:main` | Latest from `main` branch; used by Argo CD for staging |
 | `ghcr.io/itsbriany/riskstream:latest` | Latest release alias |
 | `ghcr.io/itsbriany/riskstream:<sha>` | Commit-specific digest for traceability |
+
+ThreatFox and CISA KEV ingestion images publish `:<sha>` and `:main` tags on pushes to `main`.
 
 ### GHCR Setup
 
@@ -108,6 +115,8 @@ The workflow uses GitHub Actions build cache (`type=gha`) to speed up rebuilds:
 - Layer cache persists across builds
 - Subsequent builds skip unchanged layers
 - Significantly reduces build time on repeated pushes
+- Cache scope is isolated per image (`riskstream`, `threatfox-ingestion`, `cisa-kev-ingestion`) to avoid cache collisions across builds
+- PR builds use explicit local image output while push builds publish to GHCR
 
 ## Developer Workflow
 

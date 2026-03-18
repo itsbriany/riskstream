@@ -20,6 +20,12 @@ Buckets are automatically created via a Kubernetes Job that runs after MinIO dep
 - `processed-data` - Analyzed and enriched data
 - `archives` - Historical data archives
 
+### Current Raw Feed Prefixes
+- `threatfox/recent/` - ThreatFox recent IOC snapshots
+- `cisa-kev/catalog/` - CISA KEV catalog snapshots
+
+These prefixes are created on first write. The MinIO init job creates buckets only, not object-prefix placeholders.
+
 ### How It Works
 
 #### Local Development

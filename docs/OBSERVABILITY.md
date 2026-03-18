@@ -66,6 +66,30 @@ ThreatFox failed requests:
 {namespace="staging", container="threatfox-ingestion"} | json | event="request_failed"
 ```
 
+CISA KEV ingestion logs:
+
+```logql
+{namespace="staging", container="cisa-kev-ingestion"}
+```
+
+CISA KEV structured JSON logs:
+
+```logql
+{namespace="staging", container="cisa-kev-ingestion"} | json
+```
+
+CISA KEV failed requests:
+
+```logql
+{namespace="staging", container="cisa-kev-ingestion"} | json | event="request_failed"
+```
+
+CISA KEV ingest evaluations:
+
+```logql
+{namespace="staging", container="cisa-kev-ingestion"} | json | event="catalog_ingestion_evaluated"
+```
+
 All RiskStream app logs by pod:
 
 ```logql

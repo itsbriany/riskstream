@@ -19,7 +19,7 @@ Fetches the current KEV catalog from CISA and returns it without persisting it.
 ```text
 POST /ingest/catalog
 ```
-Fetches the current KEV catalog and persists a timestamped raw snapshot to the `raw-feeds` MinIO bucket under `cisa-kev/catalog/...`.
+Fetches the current KEV catalog, computes a deterministic content hash, and persists a new timestamped raw snapshot to the `raw-feeds` MinIO bucket under `cisa-kev/catalog/...` only when the feed content has changed.
 
 ### Service Info
 ```text
@@ -35,6 +35,14 @@ GET /
 - `S3_ACCESS_KEY`: MinIO/S3 access key for raw feed storage
 - `S3_SECRET_KEY`: MinIO/S3 secret key for raw feed storage
 - `S3_USE_SSL`: Whether to use TLS for MinIO/S3 connections
+
+## Ingestion Behavior
+
+- The Kubernetes CronJob triggers `POST /ingest/catalog` once per day at `02:05 UTC`
+- The service fetches the full official JSON feed on each run
+- A new snapshot is written only when the upstream payload differs from the latest stored snapshot
+- Successful ingest responses include `changed`, `snapshot_written`, `checked_at`, and `content_hash`
+- No-change responses include `last_object_key` instead of writing a duplicate snapshot
 
 ## Running Locally
 

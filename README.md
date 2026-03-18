@@ -43,8 +43,8 @@ Build and deploy locally to `local-dev` namespace:
 ```bash
 ./scripts/build-and-deploy-local.sh
 # This script will:
-# 1. Build the Docker image
-# 2. Import it to k3s
+# 1. Build the app and ingestion Docker images
+# 2. Import them to k3s
 # 3. Deploy all services (including MinIO)
 # 4. Initialize MinIO buckets automatically (via Kubernetes Job)
 ```
@@ -102,10 +102,11 @@ RiskStream is built as a collection of microservices:
 - **API Gateway** (`:8080`) - Main entry point for external clients
 - **Ingestion Services**:
   - **ThreatFox** (`:8081`) - Ingests IOCs from abuse.ch ThreatFox API
-  - _(More ingestion services planned)_
+  - **CISA KEV** (`:8082`) - Ingests the CISA Known Exploited Vulnerabilities catalog
 - **Storage** - MinIO object storage for threat data
   - Separate instances per environment (local-dev, staging, production)
   - Buckets: `threat-indicators`, `raw-feeds`, `processed-data`, `archives`
+  - Raw feed prefixes: `threatfox/recent/...`, `cisa-kev/catalog/...`
 
 See [riskstream/services/README.md](riskstream/services/README.md) for detailed service documentation.
 
@@ -135,6 +136,7 @@ See [riskstream/services/README.md](riskstream/services/README.md) for detailed 
 │   ├── services/
 │   │   ├── api/                  # API Gateway
 │   │   └── ingestion/
+│   │       ├── cisa-kev/         # CISA KEV catalog ingestion
 │   │       └── threatfox/        # ThreatFox IOC ingestion
 │   ├── shared/
 │   │   └── utils/
@@ -166,7 +168,8 @@ See [riskstream/services/README.md](riskstream/services/README.md) for detailed 
     ├── build-and-deploy-local.sh
     ├── port-forward-argocd.sh
     ├── port-forward-minio.sh      # MinIO port forwarding
-    └── init-storage.sh            # Initialize buckets
+    ├── run-cisa-kev-integration-test.sh
+    └── run-threatfox-integration-test.sh
 ```
 
 ## Notes
