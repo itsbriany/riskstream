@@ -14,6 +14,12 @@ Run the ThreatFox unit tests directly with `pytest`:
 pytest riskstream/tests/unit/test_threatfox_ingestion.py -q
 ```
 
+Run the CISA KEV unit tests directly with `pytest`:
+
+```bash
+pytest riskstream/tests/unit/test_cisa_kev_ingestion.py -q
+```
+
 Run all unit tests under the directory:
 
 ```bash
@@ -22,7 +28,7 @@ pytest riskstream/tests/unit/ -q
 
 ## Running Unit Tests In The Service Base Image
 
-To keep unit testing consistent with the ThreatFox service runtime, run the tests in the same base image family used by `riskstream/services/ingestion/threatfox/Dockerfile`:
+To keep unit testing consistent with the ingestion service runtime, run the tests in the same base image family used by the ingestion Dockerfiles:
 
 ```bash
 docker run --rm \
@@ -30,6 +36,14 @@ docker run --rm \
   -w /work \
   python:3.11-slim \
   sh -lc "python -m pip install --quiet pytest && pytest -q riskstream/tests/unit/test_threatfox_ingestion.py"
+```
+
+```bash
+docker run --rm \
+  -v "$PWD:/work" \
+  -w /work \
+  python:3.11-slim \
+  sh -lc "python -m pip install --quiet pytest && pytest -q riskstream/tests/unit/test_cisa_kev_ingestion.py"
 ```
 
 ## Other Test Suites

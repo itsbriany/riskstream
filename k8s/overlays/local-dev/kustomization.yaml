@@ -10,6 +10,9 @@ images:
   - name: ghcr.io/itsbriany/riskstream
     newName: riskstream
     newTag: local
+  - name: ghcr.io/itsbriany/cisa-kev-ingestion
+    newName: cisa-kev-ingestion
+    newTag: local
   - name: ghcr.io/itsbriany/threatfox-ingestion
     newName: threatfox-ingestion
     newTag: local
@@ -17,4 +20,5 @@ images:
 patches:
   - path: patch.yaml
   - path: minio-patch.yaml
+  - path: cisa-kev-ingestion-patch.yaml
   - path: threatfox-ingestion-patch.yaml

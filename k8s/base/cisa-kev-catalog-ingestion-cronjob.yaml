@@ -1,0 +1,26 @@
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: cisa-kev-catalog-ingestion
+spec:
+  schedule: "5 2 * * *"
+  concurrencyPolicy: Forbid
+  successfulJobsHistoryLimit: 2
+  failedJobsHistoryLimit: 2
+  jobTemplate:
+    spec:
+      backoffLimit: 2
+      template:
+        metadata:
+          labels:
+            app: cisa-kev-catalog-ingestion
+        spec:
+          restartPolicy: OnFailure
+          containers:
+            - name: trigger-ingestion
+              image: curlimages/curl:8.7.1
+              args:
+                - -fsS
+                - -X
+                - POST
+                - http://cisa-kev-ingestion/ingest/catalog

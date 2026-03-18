@@ -5,35 +5,42 @@ set -euo pipefail
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 NAMESPACE="local-dev"
 IMAGE_NAME="riskstream"
+CISA_KEV_IMAGE_NAME="cisa-kev-ingestion"
 THREATFOX_IMAGE_NAME="threatfox-ingestion"
 IMAGE_TAG="${IMAGE_TAG:-local}"
 
-echo "[1/7] Building app Docker image..."
+echo "[1/9] Building app Docker image..."
 docker build -t "${IMAGE_NAME}:${IMAGE_TAG}" "${ROOT_DIR}/app"
 
-echo "[2/7] Building ThreatFox Docker image..."
+echo "[2/9] Building CISA KEV Docker image..."
+docker build -f "${ROOT_DIR}/riskstream/services/ingestion/cisa-kev/Dockerfile" \
+  -t "${CISA_KEV_IMAGE_NAME}:${IMAGE_TAG}" \
+  "${ROOT_DIR}"
+
+echo "[3/9] Building ThreatFox Docker image..."
 docker build -f "${ROOT_DIR}/riskstream/services/ingestion/threatfox/Dockerfile" \
   -t "${THREATFOX_IMAGE_NAME}:${IMAGE_TAG}" \
   "${ROOT_DIR}"
 
-echo "[3/7] Importing images to k3s..."
+echo "[4/9] Importing images to k3s..."
 docker save "${IMAGE_NAME}:${IMAGE_TAG}" | sudo k3s ctr images import -
+docker save "${CISA_KEV_IMAGE_NAME}:${IMAGE_TAG}" | sudo k3s ctr images import -
 docker save "${THREATFOX_IMAGE_NAME}:${IMAGE_TAG}" | sudo k3s ctr images import -
 
-echo "[4/7] Creating namespace: ${NAMESPACE}..."
+echo "[5/9] Creating namespace: ${NAMESPACE}..."
 kubectl create namespace "${NAMESPACE}" --dry-run=client -o yaml | kubectl apply -f -
 
-echo "[5/7] Deploying to ${NAMESPACE} using local-dev overlay..."
+echo "[6/9] Deploying to ${NAMESPACE} using local-dev overlay..."
 kubectl apply -k "${ROOT_DIR}/k8s/overlays/local-dev" -n "${NAMESPACE}"
 
-echo "[6/7] Waiting for MinIO to be ready..."
+echo "[7/9] Waiting for MinIO to be ready..."
 kubectl wait --for=condition=ready pod -l app=minio -n "${NAMESPACE}" --timeout=120s
 
 # Give MinIO a few extra seconds to fully start accepting connections
 echo "Waiting for MinIO service to be fully available..."
 sleep 10
 
-echo "[7/7] Waiting for MinIO bucket initialization to complete..."
+echo "[8/9] Waiting for MinIO bucket initialization to complete..."
 # Wait for the init job to complete (it should start automatically after MinIO is ready)
 if kubectl wait --for=condition=complete job/minio-init -n "${NAMESPACE}" --timeout=120s; then
   echo "✓ MinIO initialization completed successfully"
@@ -55,9 +62,11 @@ else
   echo "Manual check: kubectl logs -n ${NAMESPACE} job/minio-init"
 fi
 
+echo "[9/9] Local images ready for app and ingestion services."
 echo ""
 echo "✓ Build and deployment complete!"
 echo "  Image: ${IMAGE_NAME}:${IMAGE_TAG}"
+echo "  CISA KEV Image: ${CISA_KEV_IMAGE_NAME}:${IMAGE_TAG}"
 echo "  ThreatFox Image: ${THREATFOX_IMAGE_NAME}:${IMAGE_TAG}"
 echo "  MinIO: Buckets initialized"
 echo ""

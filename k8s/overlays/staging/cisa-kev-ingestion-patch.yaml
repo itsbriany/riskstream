@@ -1,0 +1,13 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: cisa-kev-ingestion
+spec:
+  replicas: 1
+  template:
+    spec:
+      containers:
+        - name: cisa-kev-ingestion
+          env:
+            - name: ENVIRONMENT
+              value: staging

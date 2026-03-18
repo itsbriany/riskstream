@@ -11,6 +11,7 @@ Main API gateway that provides a unified interface for external clients.
 ### Ingestion
 Services that collect threat intelligence from external sources.
 - **ThreatFox**: abuse.ch ThreatFox IOC ingestion (Port: 8081)
+- **CISA KEV**: CISA Known Exploited Vulnerabilities catalog ingestion (Port: 8082)
 
 ## Service Architecture
 
@@ -31,6 +32,11 @@ services/
 │   ├── Dockerfile
 │   └── README.md
 └── ingestion/             # Data ingestion services
+    ├── cisa-kev/          # CISA KEV catalog ingestion
+    │   ├── src/
+    │   ├── Dockerfile
+    │   ├── requirements.txt
+    │   └── README.md
     ├── threatfox/         # ThreatFox IOC ingestion
     │   ├── src/
     │   ├── Dockerfile

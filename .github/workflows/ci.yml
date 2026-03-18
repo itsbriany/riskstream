@@ -9,6 +9,7 @@ on:
 
 env:
   IMAGE_NAME: ghcr.io/${{ github.repository }}
+  CISA_KEV_IMAGE_NAME: ghcr.io/itsbriany/cisa-kev-ingestion
   THREATFOX_IMAGE_NAME: ghcr.io/itsbriany/threatfox-ingestion
 
 jobs:
@@ -44,6 +45,14 @@ jobs:
             -w /work \
             python:3.11-slim \
             sh -lc "python -m pip install --quiet pytest && pytest -q riskstream/tests/unit/test_threatfox_ingestion.py"
+
+      - name: Run CISA KEV unit tests in service base image
+        run: |
+          docker run --rm \
+            -v "${{ github.workspace }}:/work" \
+            -w /work \
+            python:3.11-slim \
+            sh -lc "python -m pip install --quiet pytest && pytest -q riskstream/tests/unit/test_cisa_kev_ingestion.py"
 
   container:
     needs: lint-and-test
@@ -83,10 +92,11 @@ jobs:
           context: ./app
           file: ./app/Dockerfile
           push: ${{ github.event_name == 'push' }}
+          load: ${{ github.event_name != 'push' }}
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
+          cache-from: type=gha,scope=riskstream
+          cache-to: type=gha,mode=max,scope=riskstream,ignore-error=true
 
       - name: ThreatFox Docker metadata
         id: threatfox-meta
@@ -103,7 +113,29 @@ jobs:
           context: .
           file: ./riskstream/services/ingestion/threatfox/Dockerfile
           push: ${{ github.event_name == 'push' }}
+          load: ${{ github.event_name != 'push' }}
           tags: ${{ steps.threatfox-meta.outputs.tags }}
           labels: ${{ steps.threatfox-meta.outputs.labels }}
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
+          cache-from: type=gha,scope=threatfox-ingestion
+          cache-to: type=gha,mode=max,scope=threatfox-ingestion,ignore-error=true
+
+      - name: CISA KEV Docker metadata
+        id: cisa-kev-meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.CISA_KEV_IMAGE_NAME }}
+          tags: |
+            type=sha
+            type=raw,value=main,enable={{is_default_branch}}
+
+      - name: Build CISA KEV (PR) / Build and push CISA KEV (main)
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: ./riskstream/services/ingestion/cisa-kev/Dockerfile
+          push: ${{ github.event_name == 'push' }}
+          load: ${{ github.event_name != 'push' }}
+          tags: ${{ steps.cisa-kev-meta.outputs.tags }}
+          labels: ${{ steps.cisa-kev-meta.outputs.labels }}
+          cache-from: type=gha,scope=cisa-kev-ingestion
+          cache-to: type=gha,mode=max,scope=cisa-kev-ingestion,ignore-error=true
