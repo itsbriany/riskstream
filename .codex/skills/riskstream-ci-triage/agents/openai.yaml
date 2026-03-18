@@ -1,0 +1,4 @@
+interface:
+  display_name: "CI Triage"
+  short_description: "Diagnose RiskStream CI and build failures"
+  default_prompt: "Use $riskstream-ci-triage to diagnose a RiskStream CI, Docker build, or GHCR failure."

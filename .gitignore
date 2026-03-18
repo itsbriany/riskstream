@@ -21,3 +21,4 @@ dist/
 *.egg-info/
 
 local_data/
+local_docs/

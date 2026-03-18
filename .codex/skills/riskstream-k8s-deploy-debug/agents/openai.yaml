@@ -1,0 +1,4 @@
+interface:
+  display_name: "Deploy Debug"
+  short_description: "Debug RiskStream local deploys and overlays"
+  default_prompt: "Use $riskstream-k8s-deploy-debug to debug a RiskStream deployment, overlay, or rollout issue."

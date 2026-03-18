@@ -1,0 +1,4 @@
+interface:
+  display_name: "Integration"
+  short_description: "Run and triage RiskStream integration tests"
+  default_prompt: "Use $riskstream-integration-test-runner to run or debug a RiskStream integration test in local-dev."
