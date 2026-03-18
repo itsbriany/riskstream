@@ -107,7 +107,7 @@ If your GHCR package is private:
 
 ## Deployment Flow
 
-![Riskstream CI/CD Pipeline](https://raw.githubusercontent.com/itsbriany/riskstream/refs/heads/main/docs/riskstream%20CI_CD.svg)
+![Riskstream CI/CD Pipeline](https://raw.githubusercontent.com/itsbriany/riskstream/refs/heads/main/docs/riskstream-ci-cd.svg)
 
 ## Caching
 
