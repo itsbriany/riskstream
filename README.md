@@ -70,6 +70,8 @@ kubectl port-forward -n local-dev svc/riskstream 8081:80
 # MinIO Console: http://localhost:9001 (login: minioadmin/minioadmin)
 ```
 
+For the in-cluster ingestion integration test workflow, see [riskstream/tests/integration/README.md](riskstream/tests/integration/README.md).
+
 Clean up:
 
 ```bash

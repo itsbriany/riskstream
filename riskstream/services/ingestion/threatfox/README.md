@@ -112,6 +112,12 @@ For service-level validation inside Kubernetes, run the in-cluster integration t
 ./scripts/run-threatfox-integration-test.sh
 ```
 
+To run both ingestion integration tests in sequence from one entrypoint:
+
+```bash
+./scripts/run-ingestion-integration-tests.sh
+```
+
 ## ThreatFox API
 
 The service uses the [ThreatFox API v1](https://threatfox.abuse.ch/api/) which provides:

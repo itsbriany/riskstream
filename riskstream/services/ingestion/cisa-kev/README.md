@@ -58,3 +58,9 @@ kubectl logs -n local-dev -l app=cisa-kev-ingestion -f
 pytest riskstream/tests/unit/test_cisa_kev_ingestion.py -q
 ./scripts/run-cisa-kev-integration-test.sh
 ```
+
+To run both ingestion integration tests in sequence from one entrypoint:
+
+```bash
+./scripts/run-ingestion-integration-tests.sh
+```

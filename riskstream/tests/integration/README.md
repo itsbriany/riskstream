@@ -12,6 +12,28 @@ Integration tests ensure that services work correctly together, testing:
 
 ## Running Tests
 
+### Run both ingestion integration tests
+
+Deploy the local-dev environment first:
+
+```bash
+./scripts/build-and-deploy-local.sh
+```
+
+Then run both in-cluster ingestion integration tests sequentially:
+
+```bash
+./scripts/run-ingestion-integration-tests.sh
+```
+
+You can also target a single service through the wrapper by passing its name:
+
+```bash
+./scripts/run-ingestion-integration-tests.sh <service>
+```
+
+Use the per-service scripts below when you want the most direct, targeted failure signal.
+
 ### ThreatFox in-cluster test
 
 Deploy the local-dev environment first:
@@ -89,3 +111,4 @@ Integration tests require:
 1. Keep integration tests focused on service boundaries.
 2. Prefer in-cluster execution for Kubernetes services.
 3. Verify live contracts without mocking when the goal is true integration coverage.
+4. Use the combined wrapper for convenience, and the per-service scripts for targeted troubleshooting.
