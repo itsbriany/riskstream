@@ -202,6 +202,7 @@ def test_persist_recent_snapshot_writes_to_raw_feeds(monkeypatch):
     result = main.persist_recent_snapshot(
         {
             "content_hash": "ignored-by-persist",
+            "source_url": "https://urlhaus.abuse.ch/downloads/csv_recent/",
             "raw_csv": "url,status\nhttps://bad.example,online\n",
             "urls": [{"url": "https://bad.example", "status": "online"}],
         }
@@ -220,14 +221,14 @@ def test_persist_recent_snapshot_writes_to_raw_feeds(monkeypatch):
         "content_hash": main.compute_recent_hash(
             {
                 "content_hash": "ignored-by-persist",
+                "source_url": "https://urlhaus.abuse.ch/downloads/csv_recent/",
                 "raw_csv": "url,status\nhttps://bad.example,online\n",
                 "urls": [{"url": "https://bad.example", "status": "online"}],
             }
         ),
         "data": {
-            "content_hash": "ignored-by-persist",
+            "source_url": "https://urlhaus.abuse.ch/downloads/csv_recent/",
             "raw_csv": "url,status\nhttps://bad.example,online\n",
-            "urls": [{"url": "https://bad.example", "status": "online"}],
         },
     }
     assert result == {
@@ -238,6 +239,7 @@ def test_persist_recent_snapshot_writes_to_raw_feeds(monkeypatch):
         "content_hash": main.compute_recent_hash(
             {
                 "content_hash": "ignored-by-persist",
+                "source_url": "https://urlhaus.abuse.ch/downloads/csv_recent/",
                 "raw_csv": "url,status\nhttps://bad.example,online\n",
                 "urls": [{"url": "https://bad.example", "status": "online"}],
             }

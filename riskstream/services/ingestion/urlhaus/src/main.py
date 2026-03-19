@@ -60,13 +60,17 @@ def compute_recent_hash(recent_data: dict) -> str:
 
 
 def build_recent_snapshot(recent_data: dict, fetched_at: datetime, content_hash: str) -> dict:
+    snapshot_data = {
+        "source_url": recent_data.get("source_url"),
+        "raw_csv": recent_data.get("raw_csv", ""),
+    }
     return {
         "source": "urlhaus",
         "feed": "recent",
         "fetched_at": fetched_at.isoformat(),
         "service": "urlhaus-ingestion",
         "content_hash": content_hash,
-        "data": recent_data,
+        "data": snapshot_data,
     }
 
 
