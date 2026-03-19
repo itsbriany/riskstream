@@ -1,6 +1,7 @@
 import logging
 import os
 import sys
+from datetime import datetime
 from pathlib import Path
 
 from client import JsonFormatter
@@ -30,13 +31,28 @@ def log_event(level: int, message: str, **fields) -> None:
     logger.log(level, message, extra={"fields": fields})
 
 
+def get_reference_time() -> datetime | None:
+    reference_time = os.getenv("URLHAUS_ARCHIVE_REFERENCE_TIME")
+    if not reference_time:
+        return None
+
+    try:
+        return datetime.fromisoformat(reference_time)
+    except ValueError as exc:
+        raise ValueError(
+            "Invalid URLHAUS_ARCHIVE_REFERENCE_TIME; expected ISO-8601 timestamp"
+        ) from exc
+
+
 def run() -> None:
     configure_logging()
     environment = os.getenv("ENVIRONMENT", "unknown")
     hot_retention_days = int(os.getenv("URLHAUS_HOT_RETENTION_DAYS", "30"))
     archive_retention_days = int(os.getenv("URLHAUS_ARCHIVE_RETENTION_DAYS", "180"))
+    reference_time = get_reference_time()
 
     lifecycle = run_archive_lifecycle(
+        now=reference_time,
         hot_retention_days=hot_retention_days,
         archive_retention_days=archive_retention_days,
     )

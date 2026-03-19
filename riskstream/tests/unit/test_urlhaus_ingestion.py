@@ -17,6 +17,7 @@ if str(URLHAUS_SRC) not in sys.path:
     sys.path.insert(0, str(URLHAUS_SRC))
 
 import client  # noqa: E402
+import archive_main  # noqa: E402
 import feed_store  # noqa: E402
 import main  # noqa: E402
 
@@ -440,6 +441,49 @@ def test_run_archive_lifecycle_moves_old_hot_objects_and_deletes_old_archives(mo
     )
     minio_client.remove_object.assert_any_call(
         "archives", "urlhaus/deltas/2025/01/01/abc123.json.gz"
+    )
+
+
+def test_archive_main_reads_reference_time_override(monkeypatch):
+    reference_time = "2026-04-19T00:00:00+00:00"
+    monkeypatch.setenv("URLHAUS_ARCHIVE_REFERENCE_TIME", reference_time)
+
+    assert archive_main.get_reference_time() == datetime.fromisoformat(reference_time)
+
+
+def test_archive_main_rejects_invalid_reference_time(monkeypatch):
+    monkeypatch.setenv("URLHAUS_ARCHIVE_REFERENCE_TIME", "not-a-timestamp")
+
+    with pytest.raises(
+        ValueError,
+        match="Invalid URLHAUS_ARCHIVE_REFERENCE_TIME; expected ISO-8601 timestamp",
+    ):
+        archive_main.get_reference_time()
+
+
+def test_archive_main_passes_reference_time_to_lifecycle(monkeypatch):
+    reference_time = datetime(2026, 4, 19, tzinfo=timezone.utc)
+    run_archive = Mock(
+        return_value={
+            "hot_retention_days": 30,
+            "archive_retention_days": 180,
+            "archived_object_count": 1,
+            "pruned_hot_object_count": 1,
+            "deleted_archive_object_count": 0,
+            "checked_at": "2026-04-19T00:00:00+00:00",
+        }
+    )
+    monkeypatch.setenv("URLHAUS_ARCHIVE_REFERENCE_TIME", "2026-04-19T00:00:00+00:00")
+    monkeypatch.setattr(archive_main, "configure_logging", Mock())
+    monkeypatch.setattr(archive_main, "log_event", Mock())
+    monkeypatch.setattr(archive_main, "run_archive_lifecycle", run_archive)
+
+    archive_main.run()
+
+    run_archive.assert_called_once_with(
+        now=reference_time,
+        hot_retention_days=30,
+        archive_retention_days=180,
     )
 
 

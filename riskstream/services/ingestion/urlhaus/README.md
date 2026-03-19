@@ -38,6 +38,7 @@ GET /
 - `S3_USE_SSL`: Whether to use TLS for MinIO/S3 connections
 - `URLHAUS_HOT_RETENTION_DAYS`: Hot retention window before archive move (default: `30`)
 - `URLHAUS_ARCHIVE_RETENTION_DAYS`: Archive retention window before delete (default: `180`)
+- `URLHAUS_ARCHIVE_REFERENCE_TIME`: Optional ISO-8601 reference time override for archive testing
 
 ## Ingestion Behavior
 
@@ -104,6 +105,39 @@ The actual URLhaus data is then stored under `data` for checkpoints and deltas, 
 - A dedicated `urlhaus-archive-lifecycle` CronJob moves URLhaus checkpoints and deltas older than the hot retention window from `raw-feeds` into `archives`
 - The lifecycle job never archives or deletes `raw-feeds/urlhaus/state/latest.json.gz`
 - Archived URLhaus artifacts older than the archive retention window are deleted
+- Lowering `URLHAUS_HOT_RETENTION_DAYS` alone is not enough to archive today's objects, because the lifecycle compares the date embedded in each object key to the current reference date
+
+### Immediate Local-Dev Testing
+
+To test archive behavior against live local-dev URLhaus data without waiting 30 days, run a one-off archive Job with a future reference time.
+
+Recommended flow:
+
+1. Trigger `POST /ingestion/recent` so the current day has live checkpoint and delta objects in `raw-feeds`
+2. Deploy the updated `urlhaus-ingestion` image to local k3s
+3. Create a one-off Job from the `urlhaus-archive-lifecycle` CronJob
+4. Set `URLHAUS_ARCHIVE_REFERENCE_TIME` to at least 31 days after the object partition date
+5. Stream the Job logs and inspect `raw-feeds` and `archives`
+
+Example:
+
+```bash
+kubectl create job urlhaus-archive-lifecycle-now \
+  --from=cronjob/urlhaus-archive-lifecycle \
+  -n local-dev
+
+kubectl set env job/urlhaus-archive-lifecycle-now \
+  URLHAUS_ARCHIVE_REFERENCE_TIME=2026-04-19T00:00:00+00:00 \
+  -n local-dev
+
+kubectl logs -n local-dev job/urlhaus-archive-lifecycle-now -f
+```
+
+Expected result:
+
+- `raw-feeds/urlhaus/checkpoints/...` and `raw-feeds/urlhaus/deltas/...` objects old enough relative to the override move into `archives/urlhaus/...`
+- `raw-feeds/urlhaus/state/latest.json.gz` remains in place
+- archive deletion does not occur unless the override is also beyond the archive retention window
 
 ## Running Locally
 
