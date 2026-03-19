@@ -1,5 +1,7 @@
 # riskstream
 
+[![CI/CD Status](https://github.com/r0kit-sec/riskstream/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/r0kit-sec/riskstream/actions/workflows/ci.yml?query=branch%3Amain)
+
 Riskstream is a streaming ML ranking system that prioritizes security signals based on contextual relevance, enabling consumers to focus on the highest-risk threats in near real time.
 
 Built on Kubernetes with Argo CD GitOps and GitHub Actions CI/CD.
