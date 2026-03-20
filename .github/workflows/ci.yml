@@ -70,7 +70,7 @@ jobs:
             -v "${{ github.workspace }}:/work" \
             -w /work \
             python:3.11-slim \
-            sh -lc "python -m pip install --quiet pytest minio && pytest -q riskstream/tests/unit/test_threat_signal_normalizer.py"
+            sh -lc "python -m pip install --quiet pytest minio jsonschema && pytest -q riskstream/tests/unit/test_threat_signal_normalizer.py"
 
   container:
     needs: lint-and-test

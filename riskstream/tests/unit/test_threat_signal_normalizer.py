@@ -4,6 +4,9 @@ import sys
 from pathlib import Path
 from unittest.mock import Mock, patch
 
+from jsonschema import Draft202012Validator
+
+REPO_ROOT = Path(__file__).resolve().parents[3]
 NORMALIZER_SRC = (
     Path(__file__).resolve().parents[2]
     / "services"
@@ -11,10 +14,26 @@ NORMALIZER_SRC = (
     / "threat-signal"
     / "src"
 )
+if str(REPO_ROOT) not in sys.path:
+    sys.path.insert(0, str(REPO_ROOT))
 if str(NORMALIZER_SRC) not in sys.path:
     sys.path.insert(0, str(NORMALIZER_SRC))
 
+SCHEMA_PATH = NORMALIZER_SRC.parent / "schemas" / "threat_signal.v1.schema.json"
+
 import normalizer
+
+
+def _validator() -> Draft202012Validator:
+    return Draft202012Validator(
+        json.loads(SCHEMA_PATH.read_text()),
+        format_checker=Draft202012Validator.FORMAT_CHECKER,
+    )
+
+
+def _assert_schema_valid(record: dict) -> None:
+    errors = sorted(_validator().iter_errors(record), key=lambda err: list(err.path))
+    assert errors == []
 
 
 def test_normalize_threatfox_snapshot_maps_expected_fields():
@@ -87,6 +106,7 @@ def test_normalize_threatfox_snapshot_maps_expected_fields():
             },
         }
     ]
+    _assert_schema_valid(records[0])
 
 
 def test_normalize_urlhaus_checkpoint_maps_expected_fields():
@@ -143,6 +163,7 @@ def test_normalize_urlhaus_checkpoint_maps_expected_fields():
             },
         }
     ]
+    _assert_schema_valid(records[0])
 
 
 def test_normalize_urlhaus_delta_maps_actions():
@@ -185,6 +206,29 @@ def test_normalize_urlhaus_delta_maps_actions():
     assert records[2]["artifact_value"] == "https://three.example"
     assert records[2]["source_details"]["urlhaus"]["reason"] == "missing_from_recent_feed"
     assert records[2]["raw_ref"]["section"] == "removed"
+    _assert_schema_valid(records[2])
+
+
+def test_threat_signal_schema_rejects_missing_required_core_field():
+    record = {
+        "schema_version": "threat_signal.v1",
+        "source": "threatfox",
+        "feed": "recent",
+        "signal_kind": "indicator",
+        "action": "observed",
+        "artifact_type": "domain",
+        "external_id": "1765567",
+        "raw_ref": {
+            "bucket": "raw-feeds",
+            "object_key": "threatfox/recent/2026/03/14/173753Z.json",
+            "row_number": 1,
+        },
+    }
+
+    errors = list(_validator().iter_errors(record))
+
+    assert any(error.validator == "required" for error in errors)
+    assert any("artifact_value" in error.message for error in errors)
 
 
 def test_build_normalized_object_key_matches_phase1_layout():

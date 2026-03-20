@@ -4,6 +4,15 @@ This batch component normalizes raw feed artifacts from `raw-feeds` into `threat
 
 It is intended to run as Kubernetes Jobs or CronJobs rather than as a long-running HTTP service.
 
+## Schema contract
+
+The canonical normalized-output contract lives under [`schemas/`](./schemas):
+
+- [`threat_signal.v1.schema.json`](./schemas/threat_signal.v1.schema.json) is the machine-readable JSON Schema
+- [`threat_signal.v1.md`](./schemas/threat_signal.v1.md) is the human-readable field guide
+
+`threat_signal.v1` uses a strict top-level schema with sparse optional fields. Feed-specific metadata belongs under `source_details`.
+
 ## Entrypoints
 
 Normalize one raw artifact:
