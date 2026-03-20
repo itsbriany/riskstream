@@ -15,16 +15,31 @@ The canonical normalized-output contract lives under [`schemas/`](./schemas):
 
 ## Entrypoints
 
-Normalize one raw artifact:
+This component is meant to run inside Kubernetes, not as an ad hoc local Python command.
+
+To run a one-off normalization pass in the cluster, create a Job from the existing CronJob template.
+
+ThreatFox:
 
 ```bash
-python riskstream/services/normalization/threat-signal/src/main.py \
-  --raw-object-key threatfox/recent/2026/03/19/140500Z.json
+kubectl delete job threatfox-recent-normalization-now -n local-dev --ignore-not-found
+kubectl create job threatfox-recent-normalization-now \
+  --from=cronjob/threatfox-recent-normalization \
+  -n local-dev
+kubectl logs -n local-dev job/threatfox-recent-normalization-now -f
 ```
 
-Normalize all pending artifacts for one source:
+URLhaus:
 
 ```bash
-python riskstream/services/normalization/threat-signal/src/main.py --source threatfox
-python riskstream/services/normalization/threat-signal/src/main.py --source urlhaus
+kubectl delete job urlhaus-recent-normalization-now -n local-dev --ignore-not-found
+kubectl create job urlhaus-recent-normalization-now \
+  --from=cronjob/urlhaus-recent-normalization \
+  -n local-dev
+kubectl logs -n local-dev job/urlhaus-recent-normalization-now -f
 ```
+
+These Jobs run the same container entrypoint defined in the CronJobs:
+
+- `python riskstream/services/normalization/threat-signal/src/main.py --source threatfox`
+- `python riskstream/services/normalization/threat-signal/src/main.py --source urlhaus`
