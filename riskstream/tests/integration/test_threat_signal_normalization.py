@@ -2,10 +2,12 @@ import gzip
 import json
 import os
 import subprocess
+import time
 import uuid
 from io import BytesIO
 
 from minio import Minio
+from minio.error import S3Error
 
 
 RAW_BUCKET = "raw-feeds"
@@ -59,6 +61,18 @@ def _write_gzip_json_object(client: Minio, bucket: str, object_key: str, payload
     )
 
 
+def _wait_for_object(client: Minio, bucket: str, object_key: str, timeout_seconds: float = 5.0) -> None:
+    deadline = time.monotonic() + timeout_seconds
+    while True:
+        try:
+            client.stat_object(bucket, object_key)
+            return
+        except S3Error as exc:
+            if exc.code != "NoSuchKey" or time.monotonic() >= deadline:
+                raise
+            time.sleep(0.1)
+
+
 def _run_normalizer(*args: str) -> dict:
     completed = subprocess.run(
         ["python", _main_path(), *args],
@@ -103,6 +117,7 @@ def test_threatfox_normalization_runs_in_cluster():
         },
     }
     _write_json_object(client, RAW_BUCKET, raw_object_key, payload)
+    _wait_for_object(client, RAW_BUCKET, raw_object_key)
 
     first_run = _run_normalizer(
         "--raw-object-key",
@@ -156,6 +171,7 @@ def test_urlhaus_delta_normalization_runs_in_cluster():
         },
     }
     _write_gzip_json_object(client, RAW_BUCKET, raw_object_key, payload)
+    _wait_for_object(client, RAW_BUCKET, raw_object_key)
 
     run_result = _run_normalizer(
         "--raw-object-key",
