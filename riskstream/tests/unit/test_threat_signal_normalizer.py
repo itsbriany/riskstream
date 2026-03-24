@@ -313,6 +313,32 @@ def test_normalize_raw_artifact_writes_gzipped_jsonl():
     assert json.loads(payload[0])["artifact_value"] == "cache-dist-5.vitagrazia.in.net"
 
 
+def test_read_json_object_retries_nosuchkey_before_succeeding():
+    storage = Mock()
+    minio_client = Mock()
+    storage.get_client.return_value = minio_client
+    response = Mock()
+    response.read.return_value = json.dumps({"source": "threatfox"}).encode("utf-8")
+
+    class FakeNoSuchKeyError(Exception):
+        code = "NoSuchKey"
+
+    minio_client.get_object.side_effect = [FakeNoSuchKeyError(), response]
+
+    with patch.object(normalizer.time, "sleep") as sleep:
+        payload = normalizer.read_json_object(
+            storage,
+            bucket="raw-feeds",
+            object_key="threatfox/recent/2026/03/14/173753Z.json",
+        )
+
+    assert payload == {"source": "threatfox"}
+    assert minio_client.get_object.call_count == 2
+    sleep.assert_called_once_with(normalizer.RAW_OBJECT_READ_RETRY_DELAY_SECONDS)
+    response.close.assert_called_once()
+    response.release_conn.assert_called_once()
+
+
 def test_list_pending_raw_object_keys_skips_existing_normalized_outputs():
     storage = Mock()
     minio_client = Mock()

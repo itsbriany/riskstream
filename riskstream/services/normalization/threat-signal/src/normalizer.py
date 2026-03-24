@@ -4,6 +4,7 @@ import argparse
 import csv
 import gzip
 import json
+import time
 from datetime import datetime, timezone
 from io import BytesIO, StringIO
 from typing import Any
@@ -15,6 +16,8 @@ RAW_FEEDS_BUCKET = "raw-feeds"
 PROCESSED_DATA_BUCKET = "processed-data"
 THREAT_SIGNAL_SCHEMA_VERSION = "threat_signal.v1"
 NORMALIZED_PREFIX = "normalized/threat-signals"
+RAW_OBJECT_READ_RETRY_ATTEMPTS = 10
+RAW_OBJECT_READ_RETRY_DELAY_SECONDS = 0.5
 SOURCE_PREFIXES = {
     "threatfox": {"recent": ["threatfox/recent/"]},
     "urlhaus": {"recent": ["urlhaus/checkpoints/", "urlhaus/deltas/"]},
@@ -52,17 +55,29 @@ def decode_json_bytes(raw_bytes: bytes) -> dict:
 
 
 def read_json_object(storage: StorageClient, bucket: str, object_key: str) -> dict:
-    response = storage.get_client().get_object(bucket, object_key)
-    try:
-        return decode_json_bytes(response.read())
-    finally:
-        close = getattr(response, "close", None)
-        if callable(close):
-            close()
+    # Retry briefly when a just-written object is visible to one client before another.
+    for attempt in range(RAW_OBJECT_READ_RETRY_ATTEMPTS):
+        try:
+            response = storage.get_client().get_object(bucket, object_key)
+            try:
+                return decode_json_bytes(response.read())
+            finally:
+                close = getattr(response, "close", None)
+                if callable(close):
+                    close()
 
-        release_conn = getattr(response, "release_conn", None)
-        if callable(release_conn):
-            release_conn()
+                release_conn = getattr(response, "release_conn", None)
+                if callable(release_conn):
+                    release_conn()
+        except Exception as exc:
+            if (
+                getattr(exc, "code", None) != "NoSuchKey"
+                or attempt == RAW_OBJECT_READ_RETRY_ATTEMPTS - 1
+            ):
+                raise
+            time.sleep(RAW_OBJECT_READ_RETRY_DELAY_SECONDS)
+
+    raise RuntimeError(f"Unable to read raw object after retries: {bucket}/{object_key}")
 
 
 def encode_jsonl_gzip(records: list[dict]) -> bytes:
