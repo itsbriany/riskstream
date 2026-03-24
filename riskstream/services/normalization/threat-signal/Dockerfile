@@ -6,6 +6,7 @@ COPY riskstream/services/normalization/threat-signal/requirements.txt ./requirem
 RUN pip install --no-cache-dir -r requirements.txt
 
 COPY riskstream/shared /app/riskstream/shared
+COPY riskstream/services/normalization/threat-signal/schemas /app/riskstream/services/normalization/threat-signal/schemas
 COPY riskstream/services/normalization/threat-signal/src /app/riskstream/services/normalization/threat-signal/src
 
 ENV PYTHONPATH=/app

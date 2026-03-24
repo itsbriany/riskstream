@@ -5,7 +5,9 @@ import subprocess
 import time
 import uuid
 from io import BytesIO
+from pathlib import Path
 
+from jsonschema import Draft202012Validator
 from minio.error import S3Error
 
 from riskstream.shared.utils.storage import StorageClient
@@ -13,6 +15,7 @@ from riskstream.shared.utils.storage import StorageClient
 
 RAW_BUCKET = "raw-feeds"
 PROCESSED_BUCKET = "processed-data"
+SCHEMA_PATH = Path("/app/riskstream/services/normalization/threat-signal/schemas/threat_signal.v1.schema.json")
 
 
 def _storage_client() -> StorageClient:
@@ -26,6 +29,20 @@ def _storage_client() -> StorageClient:
 
 def _main_path() -> str:
     return "/app/riskstream/services/normalization/threat-signal/src/main.py"
+
+
+def _validator() -> Draft202012Validator:
+    return Draft202012Validator(
+        json.loads(SCHEMA_PATH.read_text()),
+        format_checker=Draft202012Validator.FORMAT_CHECKER,
+    )
+
+
+def _assert_schema_valid(records: list[dict]) -> None:
+    validator = _validator()
+    for record in records:
+        errors = sorted(validator.iter_errors(record), key=lambda err: list(err.path))
+        assert errors == []
 
 
 def _read_json_gzip_object(client: StorageClient, bucket: str, object_key: str) -> list[dict]:
@@ -141,9 +158,58 @@ def test_threatfox_normalization_runs_in_cluster():
 
     normalized_rows = _read_json_gzip_object(client, PROCESSED_BUCKET, normalized_object_key)
     assert len(normalized_rows) == 1
+    _assert_schema_valid(normalized_rows)
     assert normalized_rows[0]["artifact_type"] == "domain"
     assert normalized_rows[0]["artifact_value"] == "cache-dist-5.vitagrazia.in.net"
     assert normalized_rows[0]["source"] == "threatfox"
+
+
+def test_urlhaus_checkpoint_normalization_runs_in_cluster():
+    client = _storage_client()
+
+    raw_object_key = f"urlhaus/checkpoints/2099/12/31/{uuid.uuid4().hex}.json.gz"
+    normalized_object_key = (
+        raw_object_key.replace(
+            "urlhaus/checkpoints/",
+            "normalized/threat-signals/urlhaus/recent/checkpoints/",
+        ).removesuffix(".json.gz")
+        + ".jsonl.gz"
+    )
+    payload = {
+        "source": "urlhaus",
+        "feed": "recent",
+        "fetched_at": "2026-03-19T14:49:13+00:00",
+        "service": "urlhaus-ingestion",
+        "content_hash": "abc123",
+        "data": {
+            "source_url": "https://urlhaus.abuse.ch/downloads/csv_recent/",
+            "raw_csv": (
+                "# generated every 5 minutes\n"
+                "# id,dateadded,url,url_status,last_online,threat,tags,urlhaus_link,reporter\n"
+                '"3799807","2026-03-19 14:49:13","http://221.200.214.87:54591/i","online","2026-03-19 14:49:13","malware_download","32-bit,elf,mips,Mozi","https://urlhaus.abuse.ch/url/3799807/","geenensp"\n'
+            ),
+        },
+    }
+    _write_gzip_json_object(client, RAW_BUCKET, raw_object_key, payload)
+    _wait_for_object(RAW_BUCKET, raw_object_key)
+
+    run_result = _run_normalizer(
+        "--raw-object-key",
+        raw_object_key,
+        "--raw-bucket",
+        RAW_BUCKET,
+    )
+    assert run_result["source"] == "urlhaus"
+    assert run_result["raw_object_key"] == raw_object_key
+    assert run_result["normalized_object_key"] == normalized_object_key
+
+    normalized_rows = _read_json_gzip_object(client, PROCESSED_BUCKET, normalized_object_key)
+    assert len(normalized_rows) == 1
+    _assert_schema_valid(normalized_rows)
+    assert normalized_rows[0]["source"] == "urlhaus"
+    assert normalized_rows[0]["artifact_type"] == "url"
+    assert normalized_rows[0]["artifact_value"] == "http://221.200.214.87:54591/i"
+    assert normalized_rows[0]["action"] == "observed"
 
 
 def test_urlhaus_delta_normalization_runs_in_cluster():
@@ -195,6 +261,7 @@ def test_urlhaus_delta_normalization_runs_in_cluster():
 
     normalized_rows = _read_json_gzip_object(client, PROCESSED_BUCKET, normalized_object_key)
     assert len(normalized_rows) == 1
+    _assert_schema_valid(normalized_rows)
     assert normalized_rows[0]["source"] == "urlhaus"
     assert normalized_rows[0]["artifact_type"] == "url"
     assert normalized_rows[0]["artifact_value"] == "http://221.200.214.87:54591/i"

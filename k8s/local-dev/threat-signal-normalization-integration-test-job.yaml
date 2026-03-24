@@ -34,7 +34,7 @@ spec:
           command:
             - /bin/sh
             - -c
-            - python -m pip install --no-cache-dir pytest && pytest -v /tests/test_threat_signal_normalization.py
+            - python -m pip install --no-cache-dir pytest jsonschema && pytest -v /tests/test_threat_signal_normalization.py
           volumeMounts:
             - name: test-file
               mountPath: /tests
