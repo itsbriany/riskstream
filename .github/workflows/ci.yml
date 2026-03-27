@@ -40,7 +40,14 @@ jobs:
       - name: Run tests
         run: pytest ./app --tb=short || true
 
+      - name: Prepare anonymous Docker config
+        run: |
+          mkdir -p "${{ runner.temp }}/docker-anon"
+          printf '{}' > "${{ runner.temp }}/docker-anon/config.json"
+
       - name: Run ThreatFox unit tests in service base image
+        env:
+          DOCKER_CONFIG: ${{ runner.temp }}/docker-anon
         run: |
           docker run --rm \
             -v "${{ github.workspace }}:/work" \
@@ -49,6 +56,8 @@ jobs:
             sh -lc "python -m pip install --quiet pytest && pytest -q riskstream/tests/unit/test_threatfox_ingestion.py"
 
       - name: Run CISA KEV unit tests in service base image
+        env:
+          DOCKER_CONFIG: ${{ runner.temp }}/docker-anon
         run: |
           docker run --rm \
             -v "${{ github.workspace }}:/work" \
@@ -57,6 +66,8 @@ jobs:
             sh -lc "python -m pip install --quiet pytest && pytest -q riskstream/tests/unit/test_cisa_kev_ingestion.py"
 
       - name: Run URLhaus unit tests in service base image
+        env:
+          DOCKER_CONFIG: ${{ runner.temp }}/docker-anon
         run: |
           docker run --rm \
             -v "${{ github.workspace }}:/work" \
@@ -65,6 +76,8 @@ jobs:
             sh -lc "python -m pip install --quiet pytest && pytest -q riskstream/tests/unit/test_urlhaus_ingestion.py"
 
       - name: Run threat-signal normalizer unit tests in service base image
+        env:
+          DOCKER_CONFIG: ${{ runner.temp }}/docker-anon
         run: |
           docker run --rm \
             -v "${{ github.workspace }}:/work" \
