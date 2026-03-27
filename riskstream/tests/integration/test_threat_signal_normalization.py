@@ -347,14 +347,15 @@ def test_threatfox_checkpoint_bootstrap_and_rerun_are_incremental():
     client = _storage_client()
     bootstrap_bucket = f"raw-bootstrap-{uuid.uuid4().hex[:8]}"
     client.ensure_bucket(bootstrap_bucket)
+    run_id = uuid.uuid4().hex[:8]
 
-    first_raw_object_key = "threatfox/recent/2099/12/30/235959Z-bootstrap-a.json"
-    second_raw_object_key = "threatfox/recent/2099/12/31/235959Z-bootstrap-b.json"
+    first_raw_object_key = f"threatfox/recent/2099/12/30/235959Z-{run_id}-bootstrap-a.json"
+    second_raw_object_key = f"threatfox/recent/2099/12/31/235959Z-{run_id}-bootstrap-b.json"
     first_normalized_object_key = (
-        "normalized/threat-signals/threat_signal.v1/threatfox/recent/2099/12/30/235959Z-bootstrap-a.jsonl.gz"
+        f"normalized/threat-signals/threat_signal.v1/threatfox/recent/2099/12/30/235959Z-{run_id}-bootstrap-a.jsonl.gz"
     )
     second_normalized_object_key = (
-        "normalized/threat-signals/threat_signal.v1/threatfox/recent/2099/12/31/235959Z-bootstrap-b.jsonl.gz"
+        f"normalized/threat-signals/threat_signal.v1/threatfox/recent/2099/12/31/235959Z-{run_id}-bootstrap-b.jsonl.gz"
     )
     checkpoint_object_key = (
         f"normalization-state/threat-signal/threat_signal.v1/{bootstrap_bucket}/threatfox/recent.json"
