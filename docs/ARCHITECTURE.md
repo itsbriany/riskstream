@@ -30,7 +30,8 @@ The exact manifest set under `k8s/base/` grows as new services are added, so thi
 - Generic `Deployment` with GHCR image reference
 - `Service` for network access
 - MinIO deployment and bucket-init job
-- ThreatFox and CISA KEV ingestion deployments, services, and CronJobs
+- ThreatFox, CISA KEV, and URLhaus ingestion deployments, services, and CronJobs
+- Threat-signal normalization CronJobs for ThreatFox, URLhaus, and CISA KEV
 
 **Overlays** apply environment-specific changes:
 - `staging`: environment patching and image/tag selection for shared services and ingestion workloads
@@ -69,3 +70,24 @@ riskstream-production Application:
 - **Production:** `ghcr.io/itsbriany/riskstream:stable` (requires manual tag/promotion)
 - **Local-dev:** `riskstream:local` (local docker registry)
 - **Ingestion images:** ThreatFox and CISA KEV are built and published as separate GHCR images, with local-dev using local image names via overlay remapping
+
+## Threat Data Flow
+
+Threat intelligence flows through three layers:
+
+1. Ingestion services write immutable raw artifacts into MinIO under `raw-feeds/...`
+2. Threat-signal normalization CronJobs read those raw artifacts and write schema-versioned normalized JSONL batches into `processed-data/normalized/threat-signals/threat_signal.v1/...`
+3. The normalizer stores per-stream checkpoint state in `processed-data/normalization-state/threat-signal/threat_signal.v1/...`
+
+Current normalization CronJobs:
+
+- `threatfox-recent-normalization`
+- `urlhaus-recent-normalization`
+- `cisa-kev-catalog-normalization`
+
+Current tracked raw streams:
+
+- `threatfox/recent`
+- `cisa-kev/catalog`
+- `urlhaus/checkpoints`
+- `urlhaus/deltas`

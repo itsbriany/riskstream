@@ -1,0 +1,45 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: threat-signal-normalization-integration-test
+  namespace: local-dev
+  labels:
+    app: threat-signal-normalization-integration-test
+spec:
+  backoffLimit: 0
+  template:
+    metadata:
+      labels:
+        app: threat-signal-normalization-integration-test
+    spec:
+      restartPolicy: Never
+      containers:
+        - name: pytest
+          image: threat-signal-normalizer:local
+          env:
+            - name: S3_ENDPOINT
+              value: minio:9000
+            - name: S3_ACCESS_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: minio-secret
+                  key: root-user
+            - name: S3_SECRET_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: minio-secret
+                  key: root-password
+            - name: S3_USE_SSL
+              value: "false"
+          command:
+            - /bin/sh
+            - -c
+            - python -m pip install --no-cache-dir pytest jsonschema && pytest -v /tests/test_threat_signal_normalization.py
+          volumeMounts:
+            - name: test-file
+              mountPath: /tests
+              readOnly: true
+      volumes:
+        - name: test-file
+          configMap:
+            name: threat-signal-normalization-test-code

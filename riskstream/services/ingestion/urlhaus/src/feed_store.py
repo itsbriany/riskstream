@@ -108,7 +108,9 @@ def build_delta_payload(
 
     for record_id in sorted(previous_records):
         if record_id not in current_records:
-            removed.append({"id": record_id, "reason": REMOVED_REASON})
+            removed_record = dict(previous_records[record_id])
+            removed_record["reason"] = REMOVED_REASON
+            removed.append(removed_record)
 
     payload = {
         "source": "urlhaus",

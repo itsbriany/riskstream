@@ -1,0 +1,45 @@
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: urlhaus-recent-normalization
+spec:
+  schedule: "2-59/5 * * * *"
+  concurrencyPolicy: Forbid
+  successfulJobsHistoryLimit: 2
+  failedJobsHistoryLimit: 2
+  jobTemplate:
+    spec:
+      backoffLimit: 2
+      template:
+        metadata:
+          labels:
+            app: urlhaus-recent-normalization
+        spec:
+          restartPolicy: OnFailure
+          containers:
+            - name: threat-signal-normalizer
+              image: ghcr.io/itsbriany/threat-signal-normalizer:main
+              imagePullPolicy: IfNotPresent
+              command:
+                - python
+                - riskstream/services/normalization/threat-signal/src/main.py
+              args:
+                - --source
+                - urlhaus
+              env:
+                - name: ENVIRONMENT
+                  value: "production"
+                - name: S3_ENDPOINT
+                  value: "minio:9000"
+                - name: S3_ACCESS_KEY
+                  valueFrom:
+                    secretKeyRef:
+                      name: minio-secret
+                      key: root-user
+                - name: S3_SECRET_KEY
+                  valueFrom:
+                    secretKeyRef:
+                      name: minio-secret
+                      key: root-password
+                - name: S3_USE_SSL
+                  value: "false"

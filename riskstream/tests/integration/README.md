@@ -116,6 +116,27 @@ The script will:
 - start a short-lived Kubernetes Job in `local-dev`
 - verify that old URLhaus checkpoint and delta objects are archived while `state/latest` remains hot
 
+### Threat signal normalization in-cluster test
+
+Deploy the local-dev environment first:
+
+```bash
+./scripts/build-and-deploy-local.sh
+```
+
+Then run the threat signal normalization integration test:
+
+```bash
+./scripts/run-threat-signal-normalization-integration-test.sh
+```
+
+The script will:
+- build and import the `threat-signal-normalizer` image
+- deploy the local-dev overlay and wait for MinIO initialization
+- create a ConfigMap from `riskstream/tests/integration/test_threat_signal_normalization.py`
+- start a short-lived Kubernetes Job in `local-dev`
+- verify that the normalizer can read seeded raw artifacts from `raw-feeds` and write normalized outputs to `processed-data`
+
 ### Manual pytest override
 
 The ThreatFox test still accepts `THREATFOX_BASE_URL` for non-cluster targets:
@@ -142,6 +163,7 @@ URLHAUS_BASE_URL=http://urlhaus-ingestion pytest riskstream/tests/integration/te
 integration/
 ├── test_cisa_kev_ingestion.py    # CISA KEV live integration test
 ├── test_threatfox_ingestion.py   # ThreatFox live integration test
+├── test_threat_signal_normalization.py  # Threat-signal normalization in-cluster test
 ├── test_urlhaus_ingestion.py     # URLhaus live integration test
 ├── test_urlhaus_archive_lifecycle.py  # URLhaus archive lifecycle test
 └── README.md                     # Integration test workflow

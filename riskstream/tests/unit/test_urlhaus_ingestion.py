@@ -118,6 +118,29 @@ def test_parse_recent_csv_ignores_comments():
     ]
 
 
+def test_parse_recent_csv_accepts_commented_header_row():
+    urlhaus_client = client.UrlhausClient()
+    csv_payload = (
+        "# generated every 5 minutes\n"
+        "# id,dateadded,url,url_status,last_online,threat,tags,urlhaus_link,reporter\n"
+        '"3799807","2026-03-19 14:49:13","http://221.200.214.87:54591/i","online","2026-03-19 14:49:13","malware_download","32-bit,elf,mips,Mozi","https://urlhaus.abuse.ch/url/3799807/","geenensp"\n'
+    )
+
+    assert urlhaus_client.parse_recent_csv(csv_payload) == [
+        {
+            "id": "3799807",
+            "dateadded": "2026-03-19 14:49:13",
+            "url": "http://221.200.214.87:54591/i",
+            "url_status": "online",
+            "last_online": "2026-03-19 14:49:13",
+            "threat": "malware_download",
+            "tags": "32-bit,elf,mips,Mozi",
+            "urlhaus_link": "https://urlhaus.abuse.ch/url/3799807/",
+            "reporter": "geenensp",
+        }
+    ]
+
+
 def test_get_recent_urls_wraps_http_error():
     urlhaus_client = client.UrlhausClient()
     error = HTTPError(
@@ -288,7 +311,12 @@ def test_build_delta_payload_classifies_added_updated_removed():
         {"id": "1", "url": "https://one.example", "url_status": "offline"}
     ]
     assert payload["data"]["removed"] == [
-        {"id": "2", "reason": "missing_from_recent_feed"}
+        {
+            "id": "2",
+            "url": "https://two.example",
+            "url_status": "online",
+            "reason": "missing_from_recent_feed",
+        }
     ]
 
 

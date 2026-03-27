@@ -58,11 +58,17 @@ class UrlhausClient:
         return urlunparse(parsed._replace(query=urlencode(query)))
 
     def parse_recent_csv(self, raw_csv: str) -> list[Dict[str, str]]:
-        data_lines = [
-            line
-            for line in raw_csv.splitlines()
-            if line.strip() and not line.lstrip().startswith("#")
-        ]
+        data_lines = []
+        for line in raw_csv.splitlines():
+            stripped = line.strip()
+            if not stripped:
+                continue
+            if stripped.startswith("#"):
+                candidate = stripped.removeprefix("#").strip()
+                if candidate.startswith("id,"):
+                    data_lines.append(candidate)
+                continue
+            data_lines.append(line)
         if not data_lines:
             return []
 

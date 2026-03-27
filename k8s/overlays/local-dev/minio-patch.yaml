@@ -4,6 +4,9 @@ metadata:
   name: minio
 spec:
   template:
+    metadata:
+      labels:
+        riskstream.io/local-dev-minio: managed
     spec:
       containers:
       - name: minio

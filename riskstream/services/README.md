@@ -14,6 +14,10 @@ Services that collect threat intelligence from external sources.
 - **CISA KEV**: `ingestion/cisa-kev/README.md`
 - **URLhaus**: `ingestion/urlhaus/README.md`
 
+### Normalization
+Batch components that transform raw artifacts into shared downstream data contracts.
+- **Threat Signal Normalizer**: `normalization/threat-signal/README.md`
+
 ## Service Architecture
 
 Each service is independently deployable and follows these principles:
@@ -28,6 +32,7 @@ Each service is independently deployable and follows these principles:
 
 - `api/` contains gateway services
 - `ingestion/` contains source-specific ingestion services
+- `normalization/` contains batch data transformation services
 
 Each service is expected to keep its code, container definition, and canonical README together in its own directory.
 

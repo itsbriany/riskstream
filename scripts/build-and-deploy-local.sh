@@ -8,46 +8,53 @@ IMAGE_NAME="riskstream"
 CISA_KEV_IMAGE_NAME="cisa-kev-ingestion"
 THREATFOX_IMAGE_NAME="threatfox-ingestion"
 URLHAUS_IMAGE_NAME="urlhaus-ingestion"
+THREAT_SIGNAL_NORMALIZER_IMAGE_NAME="threat-signal-normalizer"
 IMAGE_TAG="${IMAGE_TAG:-local}"
 
-echo "[1/11] Building app Docker image..."
+echo "[1/12] Building app Docker image..."
 docker build -t "${IMAGE_NAME}:${IMAGE_TAG}" "${ROOT_DIR}/app"
 
-echo "[2/11] Building CISA KEV Docker image..."
+echo "[2/12] Building CISA KEV Docker image..."
 docker build -f "${ROOT_DIR}/riskstream/services/ingestion/cisa-kev/Dockerfile" \
   -t "${CISA_KEV_IMAGE_NAME}:${IMAGE_TAG}" \
   "${ROOT_DIR}"
 
-echo "[3/11] Building ThreatFox Docker image..."
+echo "[3/12] Building ThreatFox Docker image..."
 docker build -f "${ROOT_DIR}/riskstream/services/ingestion/threatfox/Dockerfile" \
   -t "${THREATFOX_IMAGE_NAME}:${IMAGE_TAG}" \
   "${ROOT_DIR}"
 
-echo "[4/11] Building URLhaus Docker image..."
+echo "[4/12] Building URLhaus Docker image..."
 docker build -f "${ROOT_DIR}/riskstream/services/ingestion/urlhaus/Dockerfile" \
   -t "${URLHAUS_IMAGE_NAME}:${IMAGE_TAG}" \
   "${ROOT_DIR}"
 
-echo "[5/11] Importing images to k3s..."
+echo "[5/12] Building Threat Signal Normalizer Docker image..."
+docker build -f "${ROOT_DIR}/riskstream/services/normalization/threat-signal/Dockerfile" \
+  -t "${THREAT_SIGNAL_NORMALIZER_IMAGE_NAME}:${IMAGE_TAG}" \
+  "${ROOT_DIR}"
+
+echo "[6/12] Importing images to k3s..."
 docker save "${IMAGE_NAME}:${IMAGE_TAG}" | sudo k3s ctr images import -
 docker save "${CISA_KEV_IMAGE_NAME}:${IMAGE_TAG}" | sudo k3s ctr images import -
 docker save "${THREATFOX_IMAGE_NAME}:${IMAGE_TAG}" | sudo k3s ctr images import -
 docker save "${URLHAUS_IMAGE_NAME}:${IMAGE_TAG}" | sudo k3s ctr images import -
+docker save "${THREAT_SIGNAL_NORMALIZER_IMAGE_NAME}:${IMAGE_TAG}" | sudo k3s ctr images import -
 
-echo "[6/11] Creating namespace: ${NAMESPACE}..."
+echo "[7/12] Creating namespace: ${NAMESPACE}..."
 kubectl create namespace "${NAMESPACE}" --dry-run=client -o yaml | kubectl apply -f -
 
-echo "[7/11] Deploying to ${NAMESPACE} using local-dev overlay..."
+echo "[8/12] Deploying to ${NAMESPACE} using local-dev overlay..."
 kubectl apply -k "${ROOT_DIR}/k8s/overlays/local-dev" -n "${NAMESPACE}"
 
-echo "[8/11] Waiting for MinIO to be ready..."
+echo "[9/12] Waiting for MinIO to be ready..."
 kubectl wait --for=condition=ready pod -l app=minio -n "${NAMESPACE}" --timeout=120s
 
 # Give MinIO a few extra seconds to fully start accepting connections
 echo "Waiting for MinIO service to be fully available..."
 sleep 10
 
-echo "[9/11] Waiting for MinIO bucket initialization to complete..."
+echo "[10/12] Waiting for MinIO bucket initialization to complete..."
 # Wait for the init job to complete (it should start automatically after MinIO is ready)
 if kubectl wait --for=condition=complete job/minio-init -n "${NAMESPACE}" --timeout=120s; then
   echo "✓ MinIO initialization completed successfully"
@@ -69,15 +76,16 @@ else
   echo "Manual check: kubectl logs -n ${NAMESPACE} job/minio-init"
 fi
 
-echo "[10/11] Local images ready for app and ingestion services."
+echo "[11/12] Local images ready for app, ingestion, and normalization services."
 echo ""
 echo "✓ Build and deployment complete!"
 echo "  Image: ${IMAGE_NAME}:${IMAGE_TAG}"
 echo "  CISA KEV Image: ${CISA_KEV_IMAGE_NAME}:${IMAGE_TAG}"
 echo "  ThreatFox Image: ${THREATFOX_IMAGE_NAME}:${IMAGE_TAG}"
 echo "  URLhaus Image: ${URLHAUS_IMAGE_NAME}:${IMAGE_TAG}"
+echo "  Threat Signal Normalizer Image: ${THREAT_SIGNAL_NORMALIZER_IMAGE_NAME}:${IMAGE_TAG}"
 echo "  MinIO: Buckets initialized"
-echo "[11/11] Local deployment summary complete."
+echo "[12/12] Local deployment summary complete."
 echo ""
 echo "Check status:"
 echo "  kubectl get pods -n ${NAMESPACE}"

@@ -27,6 +27,13 @@ Buckets are automatically created via a Kubernetes Job that runs after MinIO dep
 - `urlhaus/deltas/` - URLhaus immutable change sets between polls
 - `urlhaus/state/` - URLhaus mutable latest-state working object
 
+### Current Processed Data Prefixes
+- `normalized/threat-signals/threat_signal.v1/threatfox/recent/` - ThreatFox normalized JSONL batches
+- `normalized/threat-signals/threat_signal.v1/cisa-kev/catalog/` - CISA KEV normalized JSONL batches
+- `normalized/threat-signals/threat_signal.v1/urlhaus/recent/checkpoints/` - URLhaus checkpoint normalization output
+- `normalized/threat-signals/threat_signal.v1/urlhaus/recent/deltas/` - URLhaus delta normalization output
+- `normalization-state/threat-signal/threat_signal.v1/` - Threat-signal normalizer checkpoint state by raw bucket, source, and stream
+
 ### Current Archive Prefixes
 - `urlhaus/checkpoints/` - Archived URLhaus daily checkpoints
 - `urlhaus/deltas/` - Archived URLhaus deltas

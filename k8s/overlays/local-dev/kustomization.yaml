@@ -19,10 +19,14 @@ images:
   - name: ghcr.io/itsbriany/urlhaus-ingestion
     newName: urlhaus-ingestion
     newTag: local
+  - name: ghcr.io/itsbriany/threat-signal-normalizer
+    newName: threat-signal-normalizer
+    newTag: local
 
 patches:
   - path: patch.yaml
   - path: minio-patch.yaml
+  - path: minio-service-patch.yaml
   - path: cisa-kev-ingestion-patch.yaml
   - path: threatfox-ingestion-patch.yaml
   - path: urlhaus-ingestion-patch.yaml

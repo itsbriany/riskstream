@@ -10,12 +10,15 @@ resources:
   - cisa-kev-ingestion-deployment.yaml
   - cisa-kev-ingestion-service.yaml
   - cisa-kev-catalog-ingestion-cronjob.yaml
+  - cisa-kev-catalog-normalization-cronjob.yaml
   - threatfox-ingestion-deployment.yaml
   - threatfox-ingestion-service.yaml
   - threatfox-recent-ingestion-cronjob.yaml
+  - threatfox-recent-normalization-cronjob.yaml
   - urlhaus-ingestion-deployment.yaml
   - urlhaus-ingestion-service.yaml
   - urlhaus-recent-ingestion-cronjob.yaml
+  - urlhaus-recent-normalization-cronjob.yaml
   - urlhaus-archive-lifecycle-cronjob.yaml
 
 configMapGenerator:
