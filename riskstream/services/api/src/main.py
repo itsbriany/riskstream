@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import gzip
 import json
+import logging
 import os
 import uuid
 from datetime import datetime, timedelta, timezone
@@ -46,6 +47,45 @@ SUPPORTED_SIGNAL_KINDS = ["indicator", "vulnerability"]
 SUPPORTED_ARTIFACT_TYPES = ["url", "domain", "ip", "hash", "cve"]
 SUPPORTED_ACTIONS = ["observed", "updated", "removed"]
 DEFAULT_ACTIONS = ["observed", "updated"]
+SERVICE_NAME = "riskstream-api"
+
+
+class JsonFormatter(logging.Formatter):
+    def format(self, record: logging.LogRecord) -> str:
+        payload = {
+            "timestamp": datetime.now(timezone.utc).isoformat(),
+            "level": record.levelname,
+            "logger": record.name,
+            "message": record.getMessage(),
+        }
+
+        fields = getattr(record, "fields", None)
+        if isinstance(fields, dict):
+            payload.update(fields)
+
+        if record.exc_info:
+            payload["exception"] = self.formatException(record.exc_info)
+
+        return json.dumps(payload)
+
+
+logger = logging.getLogger("riskstream.api")
+
+
+def configure_logging() -> None:
+    level_name = os.getenv("LOG_LEVEL", "INFO").upper()
+    level = getattr(logging, level_name, logging.INFO)
+
+    handler = logging.StreamHandler()
+    handler.setFormatter(JsonFormatter())
+
+    root_logger = logging.getLogger()
+    root_logger.handlers = [handler]
+    root_logger.setLevel(level)
+
+
+def log_event(level: int, message: str, **fields: Any) -> None:
+    logger.log(level, message, extra={"fields": fields})
 
 
 class RequestError(Exception):
@@ -649,6 +689,7 @@ def build_storage_client() -> Any:
 class Handler(BaseHTTPRequestHandler):
     def do_GET(self):
         path = urlparse(self.path).path
+        self.log_request_started("GET", path)
         if path == "/healthz":
             self.write_json(200, {"status": "ok"})
         elif path == "/v1/threats/ranking-options":
@@ -657,7 +698,7 @@ class Handler(BaseHTTPRequestHandler):
             self.write_json(
                 200,
                 {
-                    "service": "riskstream",
+                    "service": SERVICE_NAME,
                     "environment": os.getenv("ENVIRONMENT", "unknown"),
                 },
             )
@@ -666,6 +707,7 @@ class Handler(BaseHTTPRequestHandler):
 
     def do_POST(self):
         path = urlparse(self.path).path
+        self.log_request_started("POST", path)
         if path != "/v1/threats:rank":
             self.write_json(404, {"error": "not found"})
             return
@@ -674,10 +716,14 @@ class Handler(BaseHTTPRequestHandler):
             payload = self.read_json_body()
             self.write_json(200, rank_threats(payload))
         except RequestError as exc:
+            self.log_request_failed(path, "POST", 400, exc.message)
             self.write_json(400, {"error": exc.message})
         except json.JSONDecodeError:
-            self.write_json(400, {"error": "request body must be valid JSON"})
+            message = "request body must be valid JSON"
+            self.log_request_failed(path, "POST", 400, message)
+            self.write_json(400, {"error": message})
         except Exception as exc:
+            self.log_request_failed(path, "POST", 500, str(exc))
             self.write_json(500, {"error": str(exc)})
 
     def read_json_body(self) -> dict[str, Any]:
@@ -691,12 +737,63 @@ class Handler(BaseHTTPRequestHandler):
         self.send_header("Content-Length", str(len(body)))
         self.end_headers()
         self.wfile.write(body)
+        self.log_request_completed(status_code)
+
+    def log_request_started(self, method: str, path: str) -> None:
+        log_event(
+            logging.INFO,
+            "Handling HTTP request",
+            service=SERVICE_NAME,
+            event="request_started",
+            path=path,
+            method=method,
+            environment=os.getenv("ENVIRONMENT", "unknown"),
+        )
+
+    def log_request_completed(self, status_code: int) -> None:
+        log_event(
+            logging.INFO,
+            "HTTP request completed",
+            service=SERVICE_NAME,
+            event="request_completed",
+            path=urlparse(self.path).path,
+            method=self.command,
+            environment=os.getenv("ENVIRONMENT", "unknown"),
+            status_code=status_code,
+        )
+
+    def log_request_failed(
+        self, path: str, method: str, status_code: int, error: str
+    ) -> None:
+        log_event(
+            logging.ERROR,
+            "HTTP request failed",
+            service=SERVICE_NAME,
+            event="request_failed",
+            path=path,
+            method=method,
+            environment=os.getenv("ENVIRONMENT", "unknown"),
+            status_code=status_code,
+            error=error,
+        )
+
+    def log_message(self, format, *args):
+        return
 
 
 def run() -> None:
+    configure_logging()
     port = int(os.getenv("PORT", "8080"))
+    environment = os.getenv("ENVIRONMENT", "unknown")
     server = ThreadingHTTPServer(("0.0.0.0", port), Handler)
-    print(f"riskstream listening on :{port}")
+    log_event(
+        logging.INFO,
+        "RiskStream API service listening",
+        service=SERVICE_NAME,
+        event="service_started",
+        environment=environment,
+        port=port,
+    )
     server.serve_forever()
 
 

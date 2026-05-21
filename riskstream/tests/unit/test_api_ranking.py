@@ -2,6 +2,7 @@ import gzip
 import importlib.util
 import io
 import json
+import logging
 from datetime import datetime, timezone
 from pathlib import Path
 from unittest.mock import Mock
@@ -273,6 +274,7 @@ def test_rank_threats_filters_by_tags_and_min_score(monkeypatch):
 def build_handler(path):
     handler = api_main.Handler.__new__(api_main.Handler)
     handler.path = path
+    handler.command = "GET"
     handler.wfile = io.BytesIO()
     handler.send_response = Mock()
     handler.send_header = Mock()
@@ -282,6 +284,56 @@ def build_handler(path):
 
 def response_body(handler):
     return json.loads(handler.wfile.getvalue().decode("utf-8"))
+
+
+def test_json_formatter_merges_structured_fields():
+    record = logging.LogRecord(
+        "riskstream.api",
+        logging.INFO,
+        __file__,
+        1,
+        "HTTP request completed",
+        (),
+        None,
+    )
+    record.fields = {
+        "service": "riskstream-api",
+        "event": "request_completed",
+        "status_code": 200,
+    }
+
+    payload = json.loads(api_main.JsonFormatter().format(record))
+
+    assert payload["level"] == "INFO"
+    assert payload["logger"] == "riskstream.api"
+    assert payload["service"] == "riskstream-api"
+    assert payload["event"] == "request_completed"
+    assert payload["status_code"] == 200
+
+
+def test_write_json_logs_request_completed(monkeypatch):
+    events = []
+    handler = build_handler("/healthz")
+
+    def capture_log_event(level, message, **fields):
+        events.append({"level": level, "message": message, **fields})
+
+    monkeypatch.setattr(api_main, "log_event", capture_log_event)
+
+    handler.write_json(200, {"status": "ok"})
+
+    assert events == [
+        {
+            "level": logging.INFO,
+            "message": "HTTP request completed",
+            "service": "riskstream-api",
+            "event": "request_completed",
+            "path": "/healthz",
+            "method": "GET",
+            "environment": "unknown",
+            "status_code": 200,
+        }
+    ]
 
 
 def test_get_ranking_options_endpoint_returns_json():
