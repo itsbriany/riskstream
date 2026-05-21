@@ -62,9 +62,9 @@ These permissions use the auto-generated `GITHUB_TOKEN` (no manual setup needed)
 - `ghcr.io/itsbriany/cisa-kev-ingestion`
 - `ghcr.io/itsbriany/urlhaus-ingestion`
 
-### Main App Build Context
+### Main API Build Context
 
-- **Dockerfile:** `./app/Dockerfile`
+- **Dockerfile:** `./riskstream/services/api/Dockerfile`
 - **Base image:** `python:3.12-slim`
 
 ### Image Tags (on push to main)

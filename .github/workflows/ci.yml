@@ -45,6 +45,16 @@ jobs:
           mkdir -p "${{ runner.temp }}/docker-anon"
           printf '{}' > "${{ runner.temp }}/docker-anon/config.json"
 
+      - name: Run API unit tests in service base image
+        env:
+          DOCKER_CONFIG: ${{ runner.temp }}/docker-anon
+        run: |
+          docker run --rm \
+            -v "${{ github.workspace }}:/work" \
+            -w /work \
+            python:3.12-slim \
+            sh -lc "python -m pip install --quiet pytest minio && pytest -q riskstream/tests/unit/test_api_ranking.py"
+
       - name: Run ThreatFox unit tests in service base image
         env:
           DOCKER_CONFIG: ${{ runner.temp }}/docker-anon
@@ -120,8 +130,8 @@ jobs:
       - name: Build (PR) / Build and push (main)
         uses: docker/build-push-action@v6
         with:
-          context: ./app
-          file: ./app/Dockerfile
+          context: .
+          file: ./riskstream/services/api/Dockerfile
           push: ${{ github.event_name == 'push' }}
           load: ${{ github.event_name != 'push' }}
           tags: ${{ steps.meta.outputs.tags }}

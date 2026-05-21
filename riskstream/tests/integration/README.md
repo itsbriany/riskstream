@@ -137,6 +137,28 @@ The script will:
 - start a short-lived Kubernetes Job in `local-dev`
 - verify that the normalizer can read seeded raw artifacts from `raw-feeds` and write normalized outputs to `processed-data`
 
+### API ranking in-cluster test
+
+Deploy the local-dev environment first:
+
+```bash
+./scripts/build-and-deploy-local.sh
+```
+
+Then run the API ranking integration test:
+
+```bash
+./scripts/run-api-ranking-integration-test.sh
+```
+
+The script will:
+- build and import the `riskstream` API image
+- deploy the local-dev overlay and wait for the API rollout and MinIO initialization
+- create a ConfigMap from `riskstream/tests/integration/test_api_ranking.py`
+- start a short-lived Kubernetes Job in `local-dev`
+- seed normalized `threat_signal.v1` records into `processed-data`
+- call `GET /v1/threats/ranking-options` and `POST /v1/threats:rank` through the in-cluster `riskstream` Service
+
 ### Manual pytest override
 
 The ThreatFox test still accepts `THREATFOX_BASE_URL` for non-cluster targets:
@@ -157,10 +179,17 @@ The URLhaus test accepts `URLHAUS_BASE_URL` for non-cluster targets:
 URLHAUS_BASE_URL=http://urlhaus-ingestion pytest riskstream/tests/integration/test_urlhaus_ingestion.py -v
 ```
 
+The API ranking test accepts `API_BASE_URL` for non-cluster targets:
+
+```bash
+API_BASE_URL=http://riskstream pytest riskstream/tests/integration/test_api_ranking.py -v
+```
+
 ## Test Structure
 
 ```text
 integration/
+├── test_api_ranking.py           # API ranking in-cluster test
 ├── test_cisa_kev_ingestion.py    # CISA KEV live integration test
 ├── test_threatfox_ingestion.py   # ThreatFox live integration test
 ├── test_threat_signal_normalization.py  # Threat-signal normalization in-cluster test
@@ -177,6 +206,7 @@ Integration tests require:
 - outbound network access from the ThreatFox service to the live ThreatFox API
 - outbound network access from the CISA KEV service to the official CISA KEV JSON feed
 - outbound network access from the URLhaus service to the live URLhaus recent CSV export
+- MinIO credentials from `minio-secret` for tests that seed object storage
 
 ## Best Practices
 

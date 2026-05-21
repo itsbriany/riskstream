@@ -11,8 +11,10 @@ URLHAUS_IMAGE_NAME="urlhaus-ingestion"
 THREAT_SIGNAL_NORMALIZER_IMAGE_NAME="threat-signal-normalizer"
 IMAGE_TAG="${IMAGE_TAG:-local}"
 
-echo "[1/12] Building app Docker image..."
-docker build -t "${IMAGE_NAME}:${IMAGE_TAG}" "${ROOT_DIR}/app"
+echo "[1/12] Building API Docker image..."
+docker build -f "${ROOT_DIR}/riskstream/services/api/Dockerfile" \
+  -t "${IMAGE_NAME}:${IMAGE_TAG}" \
+  "${ROOT_DIR}"
 
 echo "[2/12] Building CISA KEV Docker image..."
 docker build -f "${ROOT_DIR}/riskstream/services/ingestion/cisa-kev/Dockerfile" \

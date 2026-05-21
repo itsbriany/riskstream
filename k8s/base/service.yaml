@@ -4,7 +4,7 @@ metadata:
   name: riskstream
 spec:
   selector:
-    app.kubernetes.io/name: riskstream
+    app: riskstream-api
   ports:
     - name: http
       port: 80

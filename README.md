@@ -132,7 +132,7 @@ Service-specific ports, endpoints, schedules, persistence behavior, and troubles
 
 ## Project Structure
 
-- `app/` - Legacy app kept for the main container image and CI demo flow
+- `app/` - Legacy demo app kept for historical CI smoke tests
 - `riskstream/` - Microservice code, shared libraries, and tests
 - `docs/` - Cross-cutting architecture, CI/CD, storage, and contributor guidance
 - `k8s/` - Kubernetes manifests, overlays, Argo CD definitions, and observability config
@@ -144,5 +144,5 @@ See [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) for Kubernetes structure and [r
 
 - **Staging** environment auto-syncs from `main` branch
 - **Production** environment requires manual sync for safety
-- Demo app in `app/` serves for CI image publishing
+- Main `riskstream` image now runs the API service under `riskstream/services/api`
 - Local development uses `local-dev` overlay to isolate from staging/prod
