@@ -1,10 +1,16 @@
 # riskstream
 
-[![CI/CD Status](https://github.com/r0kit-sec/riskstream/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/r0kit-sec/riskstream/actions/workflows/ci.yml?query=branch%3Amain)
+[![CI/CD Status](https://github.com/itsbriany/riskstream/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/itsbriany/riskstream/actions/workflows/ci.yml?query=branch%3Amain)
 
-Riskstream is a streaming ML ranking system that prioritizes security signals based on contextual relevance, enabling consumers to focus on the highest-risk threats in near real time.
+RiskStream is a Kubernetes platform engineering project built around containerized Python data ingestion and normalization services. It demonstrates Argo CD deployments, Kustomize environment configuration, GitHub Actions image publishing and S3-compatible object storage with MinIO.
 
-Built on Kubernetes with Argo CD GitOps and GitHub Actions CI/CD.
+The current main branch implements feed ingestion, normalized threat-signal batches, scheduled workloads and unit tests. The ranking API and model lifecycle remain under development.
+
+**Status:** Deployment manifests are reference configurations. Immutable image promotion, secret handling, observability reconciliation and workload hardening require further work before production use. Namespace separation is implemented; strict network isolation is not established.
+
+CI includes four enforced service-unit-test steps. The legacy app test command currently suppresses failures, and in-cluster integration tests are separate from this CI workflow. A historical green CI run does not verify a current cluster deployment.
+
+Known deployment gaps include an observability source revision absent from the repository branches, an AppProject destination mismatch, mutable image tags and a possible main-Service selector overlap. Full Kustomize rendering and current runtime behavior have not been verified in this audit.
 
 ![Riskstream solution architecture](docs/riskstream-solution-architecture.svg)
 
@@ -91,7 +97,8 @@ See [CONTRIBUTING.md](docs/CONTRIBUTING.md) for:
 ## Roadmap
 
 - [X] GitOps CI/CD (Argo CD + Kustomize overlays)
-- [ ] Stream ingestion + normalization
+- [X] Feed ingestion and batch normalization services with unit tests
+- [ ] Streaming/reliability improvements and full operational validation
 - [ ] Ranking API (baseline)
 - [ ] Evaluation + feedback loop
 - [ ] Continual training + monitoring
